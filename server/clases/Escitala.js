@@ -13,7 +13,7 @@ module.exports = class Escitala {
     const serie = this.numberMessage(lettersList);
     const msg = this.decoded(serie);
 
-    return replaceCharacterWithSpaceWhite( msg );
+    return msg;
   }
 
   numberMessage(msg) {
@@ -40,7 +40,7 @@ module.exports = class Escitala {
       });
     }    
 
-    return replaceSpaceWhiteWithCharacter( messageDecoded )
+    return replaceCharacterWithSpaceWhite( messageDecoded )
   }
   
 

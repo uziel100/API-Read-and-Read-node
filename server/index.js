@@ -13,8 +13,7 @@ mongoose.connect(
   (err, res) => {
     if (err) throw err;
 
-    console.log("Base de datos online!!!");
-    console.log(process.env.urlDB);
+    console.log("Base de datos online!!!");    
     app.listen(process.env.PORT, () => {
       console.log("Escuchando en el puerto: ", process.env.PORT);
     });
