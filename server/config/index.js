@@ -14,7 +14,7 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'dev';
 // =======================================
 // DBA
 // =======================================
-let urlDb = "mongodb+srv://uziel:fV9JzEXgPoFC8ED9@cluster0-68b3h.mongodb.net/Read&Read?retryWrites=true&w=majority";
+let urlDb = process.env.DB;
 
 if(process.env.NODE_ENV === 'dev'){
     urlDb = "mongodb://localhost:27017/Read&Read"
