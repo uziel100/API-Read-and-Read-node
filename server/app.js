@@ -12,7 +12,7 @@ app.use( bodyParse.json() )
 // Enable file public
 app.use( express.static( path.resolve(__dirname, "../public")) )
 
-// Configurar cabeceras y cors
+// Configurar cabeceras y cors -- permitir acceso a peticiones de cualquier front
 app.use((req, res, next) => {
 	res.header('Access-Control-Allow-Origin', '*');
 	res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
@@ -23,7 +23,7 @@ app.use((req, res, next) => {
 
 
 // Config global routes
-app.use( require('./routes/index') );
+app.use('/api/v1/', require('./routes/index') );
 
 
 
