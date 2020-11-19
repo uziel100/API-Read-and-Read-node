@@ -4,12 +4,23 @@
 
 process.env.PORT = process.env.PORT || 8080
 
-
 // =======================================
 // Enviroment
 // =======================================
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'dev';
+
+// ========================
+// Expiration token
+// ========================
+
+process.env.EXPIRATION_TOKEN = 60 * 60 * 24 * 30;
+
+// ========================
+// SEED of Autentication
+// ========================
+
+process.env.SEED = process.env.SEED || 'seed-de-desarrollo'
 
 // =======================================
 // DBA
