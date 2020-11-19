@@ -1,73 +1,71 @@
-const express = require('express')
+const express = require("express");
 const app = express();
 
-const User = require('../models/User');
-const { encodigData }  = require('../middlewares/encript')
-const Escitala = require('../clases/Escitala');
+const User = require("../models/User");
+const bcrypt = require("bcrypt");
+const Encrytion = require("../clases/Encryption");
+const information = new Encrytion();
 
-app.get('/user', (req, res) => {    
-    const encrypt = new Escitala( process.env.CLAVE );
+app.get("/user", (req, res) => {
+  User.find((err, users) => {
+    if (err) {
+      return res.status(400).json({
+        status: false,
+        message: err,
+      });
+    }
 
-    User.find((err, users) => {
-        if(err){
-            return res.status(400).json({
-                status: false,
-                message: err
-            })
-        }
+    const userMap = users.map((user) => {
+      user.email = information.decrypt(user.email);
+      return user;
+    });
 
-        const userMap = users.map( user => {            
-            user.name = encrypt.decodingMessage( user.name );
-            user.email = encrypt.decodingMessage( user.email );
-            user.password = encrypt.decodingMessage( user.password );
-            user.address = encrypt.decodingMessage( user.address );
-            user.phone = encrypt.decodingMessage( user.phone );
-            user.date = encrypt.decodingMessage( user.date );
-            user.sexo = encrypt.decodingMessage( user.sexo );
-
-            return user;
-
-        })       
-
-        res.json({
-            status: true,
-            users: userMap
-        })
-
-    })
-
-    
+    res.json({
+      status: true,
+      users: userMap,
+    });
+  });
 });
 
-app.post('/user', encodigData,  (req, res) => {
-    const body = req.user;        
+app.post("/user", (req, res) => {
+  const { email, password } = req.body;
+  let emailDuplicated = false;
 
-    const user  = new User({
-        name: body.name,
-        email: body.email,
-        password: body.password,
-        address: body.address,
-        phone: body.phone,
-        date: body.date,
-        sexo: body.sexo
-    })
-    
-    user.save( (err, userDb) => {
-        if(err){
-            return res.status(400).json({
-                status: false,
-                message: err
-            })
+  User.find({}, "email").exec((err, users) => {
+    users.forEach((user) => {
+      let emailDecoded = information.decrypt(user.email);
+      if (emailDecoded === email) emailDuplicated = true;
+    });
+
+    if (!emailDuplicated) {
+    // Create new User   
+      const newUser = new User({
+        email: information.encrypt(email),
+        password: bcrypt.hashSync(password, 10),
+      });
+      
+      newUser.save((err, userDb) => {
+        if (err) {
+          return res.status(400).json({
+            status: false,
+            message: err,
+          });
         }
 
         res.json({
-            status: true,
-            message: 'Usuario registrado'
-        })
+          status: true,
+          message: "Usuario registrado correctamente",
+          user: userDb,
+        });
+      });
 
-    })
-
-})
-
+    } else {
+      return res.status(400).json({
+        status: false,
+        message: "El email ya ha sido registrado por otro usuario",
+      });
+    }
+  });
+});
 
 module.exports = app;
