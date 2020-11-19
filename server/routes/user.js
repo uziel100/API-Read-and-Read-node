@@ -15,32 +15,33 @@ app.get("/user", (req, res) => {
       });
     }
 
-    const userMap = users.map((user) => {
-      user.email = information.decrypt(user.email);
-      return user;
-    });
+    // const userMap = users.map((user) => {
+    //   user.email = information.decrypt(user.email);
+    //   return user;
+    // });
 
     res.json({
       status: true,
-      users: userMap,
+      users: users,
     });
   });
 });
 
 app.post("/user", (req, res) => {
   const { email, password } = req.body;
-  let emailDuplicated = false;
+  // let emailDuplicated = false;
 
-  User.find({}, "email").exec((err, users) => {
-    users.forEach((user) => {
-      let emailDecoded = information.decrypt(user.email);
-      if (emailDecoded === email) emailDuplicated = true;
-    });
+  // User.find({}, "email").exec((err, users) => {
+  //   users.forEach((user) => {
+  //     let emailDecoded = information.decrypt(user.email);
+  //     if (emailDecoded === email) emailDuplicated = true;
+  //   });
 
-    if (!emailDuplicated) {
+  //   if (!emailDuplicated) {
     // Create new User   
       const newUser = new User({
-        email: information.encrypt(email),
+        // email: information.encrypt(email),
+        email,
         password: bcrypt.hashSync(password, 10),
       });
       
@@ -59,13 +60,13 @@ app.post("/user", (req, res) => {
         });
       });
 
-    } else {
-      return res.status(400).json({
-        status: false,
-        message: "El email ya ha sido registrado por otro usuario",
-      });
-    }
-  });
+  //   } else {
+  //     return res.status(400).json({
+  //       status: false,
+  //       message: "El email ya ha sido registrado por otro usuario",
+  //     });
+  //   }
+  // });
 });
 
 module.exports = app;
