@@ -7,7 +7,7 @@ let Schema = mongoose.Schema;
 let userSchema = new Schema({
     name: {
         type: String,
-        required: [true, "El nombre es obligatorio"]
+        required: [false, "El nombre es obligatorio"]
     },
     email:{
         type: String,
@@ -20,19 +20,19 @@ let userSchema = new Schema({
     },
     address: {
         type: String,
-        required: [true, "La dirección es obligatorio"]
+        required: [false, "La dirección es obligatorio"]
     },
     phone: {
-        type: String,
-        required: [true, "El telefono es obligatorio"]
+        type: String,        
+        required: [false, "El telefono es obligatorio"]
     },
-    date: {
+    birthDate: {
         type: String,
-        required: [true, "La fecha de nacimiento es obligatorio"]
+        required: [false, "La fecha de nacimiento es obligatorio"]
     },
-    sexo: {
+    gender: {
         type: String,
-        required: [true, "El sexo es obligatorio"]
+        required: [false, "El sexo es obligatorio"]
     }        
 })
 
