@@ -13,6 +13,10 @@ let userSchema = new Schema({
     type: String,
     required: false,
   },
+  lastName: {
+    type: String,
+    required: false,
+  },
   email: {
     type: String,
     unique: true,
