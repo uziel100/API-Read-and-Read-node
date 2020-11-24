@@ -46,4 +46,14 @@ app.post("/login", (req, res) => {
   });
 });
 
+app.get("/me", (req, res) =>{
+  res.json({
+    status: true,
+    user:{
+      name: 'Uziel meliton',
+      email: 'uziel@gmail.com'
+    }
+  })
+})
+
 module.exports = app;
