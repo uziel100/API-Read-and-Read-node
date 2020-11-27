@@ -27,6 +27,35 @@ app.get("/user", (req, res) => {
   });
 });
 
+app.get('/user/:id', (req, res) => {
+  const id = req.params.id;
+  User.findById(id, (err, userDb) => {
+    if(err){
+      return res.status(404).json({
+        status: false,
+        message: 'Usuario no encontrado'                
+      })
+    }
+
+    
+    if(userDb.name){
+      userDb.name = information.decrypt( userDb.name );
+      userDb.address = information.decrypt( userDb.address );
+      userDb.phone = information.decrypt( userDb.phone );
+      userDb.birthDate = information.decrypt( userDb.birthDate );
+      userDb.lastName = information.decrypt( userDb.lastName );
+      userDb.gender = information.decrypt( userDb.gender );
+    }
+    
+
+    res.json({
+      status: true,
+      user: userDb
+    })
+
+  })
+})
+
 
 app.post("/user", (req, res) => {
   const { email, password } = req.body;
