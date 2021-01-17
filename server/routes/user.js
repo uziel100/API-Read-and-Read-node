@@ -33,11 +33,10 @@ app.get('/user/:id', (req, res) => {
     if(err){
       return res.status(404).json({
         status: false,
-        message: 'Usuario no encontrado'                
+        message: 'Usuario no encontrado'
       })
     }
-
-    
+        
     if(userDb.name){
       userDb.name = information.decrypt( userDb.name );
       userDb.address = information.decrypt( userDb.address );
