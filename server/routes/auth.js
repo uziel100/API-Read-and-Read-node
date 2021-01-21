@@ -46,14 +46,31 @@ app.post("/login", (req, res) => {
   });
 });
 
-app.get("/me", (req, res) =>{
-  res.json({
-    status: true,
-    user:{
-      name: 'Uziel meliton',
-      email: 'uziel@gmail.com'
+app.post("/register", (req, res) => {
+  const { email, password  } = req.body;
+
+  // Create new User
+  const newUser = new User({
+    email,
+    password: bcrypt.hashSync(password, 10),
+  });
+
+  newUser.save((err, userDb) => {
+    if (err) {
+      return res.status(500).json({
+        status: false,
+        message: "El email ya ha sido registrado por otro usuario",
+      });
     }
-  })
-})
+
+    res.json({
+      status: true,
+      message: "Usuario registrado correctamente",
+      user: userDb,
+    });
+  });
+});
+
+
 
 module.exports = app;

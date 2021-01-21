@@ -5,6 +5,7 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const Encrytion = require("../clases/Encryption");
 const information = new Encrytion();
+const { checkToken }  = require('../middlewares/autentication')
 
 app.get("/user", (req, res) => {
   User.find((err, users) => {
@@ -15,11 +16,6 @@ app.get("/user", (req, res) => {
       });
     }
 
-    // const userMap = users.map((user) => {
-    //   user = information.decrypt( user.address )
-    //   return user;
-    // });
-
     res.json({
       status: true,
       users: users,
@@ -27,7 +23,7 @@ app.get("/user", (req, res) => {
   });
 });
 
-app.get('/user/:id', (req, res) => {
+app.get('/user/:id', checkToken , (req, res) => {
   const id = req.params.id;
   User.findById(id, (err, userDb) => {
     if(err){
@@ -46,7 +42,6 @@ app.get('/user/:id', (req, res) => {
       userDb.gender = information.decrypt( userDb.gender );
     }
     
-
     res.json({
       status: true,
       user: userDb
@@ -55,31 +50,6 @@ app.get('/user/:id', (req, res) => {
   })
 })
 
-
-app.post("/user", (req, res) => {
-  const { email, password } = req.body;
-
-  // Create new User
-  const newUser = new User({
-    email,
-    password: bcrypt.hashSync(password, 10),
-  });
-
-  newUser.save((err, userDb) => {
-    if (err) {
-      return res.status(500).json({
-        status: false,
-        message: "El email ya ha sido registrado por otro usuario",
-      });
-    }
-
-    res.json({
-      status: true,
-      message: "Usuario registrado correctamente",
-      user: userDb,
-    });
-  });
-});
 
 app.put("/user/:id", (req, res) => {
   const id = req.params.id;

@@ -1,11 +1,14 @@
-// Verificar token
+const jwt = require('jsonwebtoken');
+
+// ===========================
+// Check Token valid
 // ===========================
 
-let verificaToken = (req, res, next) => {
-    // obtener header personalizados
+const checkToken = (req, res, next) => {
+    // Get token at custon header 
+    // let token = req.headers['token'].split(" ")[1];
     let token = req.get('token');
-    
-    
+        
     jwt.verify(token, process.env.SEED, (err, decoded) => {
     
         if(err){
@@ -15,13 +18,28 @@ let verificaToken = (req, res, next) => {
             })
         }
 
-        req.usuario = decoded.usuario;
+        req.user = decoded.user;
         next();
     })       
 }
 
+const isAdmin = (req, res, next) => {
+    const role = req.user.role;
+    const hasRoleAdmin = role === 'ADMIN_ROLE'
+
+    if(!hasRoleAdmin){
+        return res.status(401).json({
+            status: false,
+            message: 'No tienes permisos de administrador'
+        });
+    }else{
+        next();
+    }
+}
 
 
-export default {
-    verificaToken,    
+
+module.exports = {
+    checkToken,
+    isAdmin    
 }

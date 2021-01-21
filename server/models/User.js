@@ -59,6 +59,9 @@ let userSchema = new Schema({
     type: Boolean,
     default: false,
   },
+}, {
+  timestamps: true,
+  versionKey: false
 });
 
 userSchema.methods.toJSON = function () {
