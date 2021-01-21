@@ -14,6 +14,10 @@ let subcategorySchema = new Schema({
         required: true,
         unique: true
     },
+    category: {
+        ref: "Category",
+        type: Schema.Types.ObjectId
+    }
 },{
     timestamps: true,
     versionKey: false
