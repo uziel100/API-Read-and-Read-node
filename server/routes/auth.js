@@ -8,7 +8,7 @@ const User = require("../models/User");
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
-  User.findOne({ email }, (err, userDb) => {
+  User.findOne({ email }, 'email _id role name password photo').exec( (err, userDb) => {
     if (err) {
       return res.status(500).json({
         status: false,
@@ -36,11 +36,13 @@ app.post("/login", (req, res) => {
       },
       process.env.SEED,
       { expiresIn: process.env.EXPIRATION_TOKEN }
-    );    
+    );  
+    
+    const { _id, email, photo, name, lastName } = userDb;
 
     res.json({
       status: true,
-      user:userDb,
+      user: { _id, email, photo, name, lastName },
       token,
     });
   });

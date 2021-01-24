@@ -99,4 +99,30 @@ app.put("/category", [checkToken, isAdmin], (req, res) => {
   });
 });
 
+app.put('/category/:id', [ checkToken, isAdmin ], (req, res) => {
+  const idcategory = req.params.id;
+ 
+  const body = _.pick(req.body, [
+      "name",
+      "niceName",
+  ])
+
+  Category.findByIdAndUpdate(idcategory, 
+      body,
+      { new: true, runValidators: true }, 
+      (err, category) => {
+      if(err){
+          return res.status(500).json({
+              status: false,
+              message: "Ocurrio algún error en el servidor o la categoria ya no existe" 
+          })
+      }
+
+      return res.json({
+          status: true,
+          category
+      })
+  })
+})
+
 module.exports = app;

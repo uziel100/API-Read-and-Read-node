@@ -84,10 +84,10 @@ let bookSchema = new Schema({
         },
         required: false
     },
-    tags: {
-        type: Array,
-        required: [true, "Los tags son obligatorios"]
-    }
+    // tags: {
+    //     type: Array,
+    //     required: [true, "Los tags son obligatorios"]
+    // }
 },
 {
   timestamps: true,
