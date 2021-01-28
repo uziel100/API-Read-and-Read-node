@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 
 const checkToken = (req, res, next) => {
     // Get token at custon header 
-     let token = req.headers['token'].split(" ")[1];
+    let token = req.headers['token'].split(" ")[1];
     // let token = req.get('token');
         
     jwt.verify(token, process.env.SEED, (err, decoded) => {
