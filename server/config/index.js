@@ -38,3 +38,16 @@ process.env.urlDB = urlDb
 
 process.env.CLAVE = 4;
 
+// ========================
+// LINK FOR FORGET PASSWORD
+// ========================
+let  link = ""
+if(process.env.NODE_ENV === 'dev'){
+    link = "http://localhost:3000/unirse/restablecerPassword"
+    
+}else{
+    link = "https://read-and-read.herokuapp.com/unirse/restablecerPassword"
+}
+
+process.env.URL_SITE = link
+
