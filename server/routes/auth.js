@@ -133,17 +133,11 @@ app.post("/forgotPassword", (req, res) => {
 
         res.json({
           status: true,
-          message: "Correo enviado correctamente"
-        })
+          message: "Email enviado"
+        });
       }
     );
 
-    res.json({
-      status: true,
-      user: userFounded,
-      token,
-      redirectLink,
-    });
   });
 });
 
@@ -180,7 +174,7 @@ app.post("/restorePassword", checkToken, (req, res) => {
   
       res.json({
         status: true,
-        user,
+        message: "Contraseña actualizada"
       });
     });
   })
