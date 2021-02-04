@@ -8,5 +8,6 @@ app.use( require('./Category') );
 app.use( require('./book') );
 app.use( require('./subcategory') );
 app.use( require('./author') );
+app.use( require('./feedback') );
 
 module.exports = app;
