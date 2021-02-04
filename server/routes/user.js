@@ -5,7 +5,7 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const Encrytion = require("../clases/Encryption");
 const information = new Encrytion();
-const { checkToken }  = require('../middlewares/autentication')
+const { checkToken } = require("../middlewares/autentication");
 
 app.get("/user", (req, res) => {
   User.find((err, users) => {
@@ -23,38 +23,38 @@ app.get("/user", (req, res) => {
   });
 });
 
-app.get('/user/:id', checkToken , (req, res) => {
+app.get("/user/:id", checkToken, (req, res) => {
   const id = req.params.id;
   User.findById(id, (err, userDb) => {
-    if(err){
+    if (err) {
       return res.status(404).json({
         status: false,
-        message: 'Usuario no encontrado'
-      })
+        message: "Usuario no encontrado",
+      });
     }
-        
-    if(userDb.name){
-      userDb.name = information.decrypt( userDb.name );
-      userDb.address = information.decrypt( userDb.address );
-      userDb.phone = information.decrypt( userDb.phone );
-      userDb.birthDate = information.decrypt( userDb.birthDate );
-      userDb.lastName = information.decrypt( userDb.lastName );
-      userDb.gender = information.decrypt( userDb.gender );
-    }
-    
+
+    userDb.name = userDb.name ? information.decrypt(userDb.name) : "";
+    userDb.address = userDb.address ? information.decrypt(userDb.address) : "";
+    userDb.phone = userDb.phone ? information.decrypt(userDb.phone) : "";
+    userDb.birthDate = userDb.birthDate
+      ? information.decrypt(userDb.birthDate)
+      : "";
+    userDb.lastName = userDb.lastName
+      ? information.decrypt(userDb.lastName)
+      : "";
+    userDb.gender = userDb.gender ? information.decrypt(userDb.gender) : "";
+
     res.json({
       status: true,
-      user: userDb
-    })
-
-  })
-})
-
+      user: userDb,
+    });
+  });
+});
 
 app.put("/user/:id", (req, res) => {
   const id = req.params.id;
   const { name, lastName, address, phone, birthDate, gender } = req.body;
- 
+
   const dataEconded = {
     name: information.encrypt(name),
     lastName: information.encrypt(lastName),
@@ -74,8 +74,7 @@ app.put("/user/:id", (req, res) => {
 
     res.send({
       status: true,
-      message: "Datos actualizados",
-      user: userDb,
+      message: "Datos actualizados"
     });
   });
 });

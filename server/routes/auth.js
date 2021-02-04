@@ -3,6 +3,10 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { transporter } = require("../config/mailer");
 const { checkToken } = require("../middlewares/autentication");
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.CLIENT_ID);
+const Encrytion = require("../clases/Encryption");
+const information = new Encrytion();
 const app = express();
 
 const User = require("../models/User");
@@ -51,6 +55,103 @@ app.post("/login", (req, res) => {
     }
   );
 });
+
+
+// SETTING GOOGLE
+
+async function verify(token) {
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: process.env.CLIENT_ID,
+  });
+
+  const payload = ticket.getPayload();
+
+  return {
+    name: payload.name,
+    email: payload.email,
+    photo: payload.picture,
+    google: true,
+  };
+}
+
+
+app.post("/google", async (req, res) => {
+  let token = req.body.idtoken;
+
+  let googleUser = await verify(token).catch((e) => {
+    return res.status(403).json({
+      status: false,
+      message: e,
+    });
+  });
+
+  User.findOne({ email: googleUser.email }, (err, userDb) => {
+    if (err) {
+      return res.status(500).json({
+        status: false,
+        message: err,
+      });
+    }
+
+    if (userDb) {
+      if (userDb.google === false) {
+        return res.status(400).json({
+          status: false,
+          message: "Email registrado, use la autenticación normal",
+        });
+      } else {
+        let token = jwt.sign(
+          {
+            usuario: userDb,
+          },
+          process.env.SEED,
+          { expiresIn: process.env.EXPIRATION_TOKEN}
+        );
+
+        return res.json({
+          status: true,
+          user: userDb,
+          token,
+        });
+      }
+    } else {
+      // si el usuario no existe en la base de datos
+
+      let newUser = new User();
+
+      newUser.name = information.encrypt( googleUser.name );
+      newUser.email = googleUser.email;
+      newUser.photo = googleUser.photo;
+      newUser.signWithGoogle = true;
+      newUser.password = ":)";
+
+      newUser.save((err, userDb) => {
+        if (err) {
+          return res.status(500).json({
+            status: false,
+            message: err,
+          });
+        }
+
+        let token = jwt.sign(
+          {
+            usuario: userDb,
+          },
+          process.env.SEED,
+          { expiresIn: process.env.CADUCIDAD_TOKEN }
+        );
+
+        return res.json({
+          status: true,
+          user: userDb,
+          token,
+        });
+      });
+    }
+  });
+});
+
 
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
