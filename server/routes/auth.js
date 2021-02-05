@@ -82,7 +82,7 @@ app.post("/google", async (req, res) => {
   let googleUser = await verify(token).catch((e) => {
     return res.status(403).json({
       status: false,
-      message: e,
+      message: "Ha ocurrido un error con la autenticacioón con google",
     });
   });
 
@@ -90,12 +90,12 @@ app.post("/google", async (req, res) => {
     if (err) {
       return res.status(500).json({
         status: false,
-        message: err,
+        message: "Ha ocurrido un error en el servidor",
       });
     }
 
     if (userDb) {
-      if (userDb.google === false) {
+      if (userDb.signWithGoogle === false) {
         return res.status(400).json({
           status: false,
           message: "Email registrado, use la autenticación normal",
@@ -188,7 +188,7 @@ app.post("/forgotPassword", (req, res) => {
     });
   }
 
-  User.findOne({ email }, "_id email").exec((err, userFounded) => {
+  User.findOne({ email }, "_id email signWithGoogle").exec((err, userFounded) => {
     if (err) {
       return res.status(500).json({
         status: false,
@@ -201,6 +201,14 @@ app.post("/forgotPassword", (req, res) => {
         status: false,
         message:
           "La dirección de correo no parece estar registrado en la plataforma",
+      });
+    }
+
+    if(userFounded.signWithGoogle){
+      return res.status(400).json({
+        status: false,
+        message:
+          "Por favor inicia sesión con google",
       });
     }
 
