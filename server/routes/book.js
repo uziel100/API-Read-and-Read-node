@@ -37,6 +37,26 @@ app.get("/book", (req, res) => {
     });
 });
 
+app.get("/book/new", (req, res) => {
+  Book.find({}, "_id title price")
+    .sort({ _id: -1 })
+    .limit(10)
+    .exec( (err, books) => {
+      if(err){
+        return res.status(400).json({
+          status: false,
+          message: err,
+        });
+      }
+
+      res.json({
+        status: true,
+        books,
+      });
+
+    })
+})
+
 app.get("/book/search/:word", (req, res) => {
   const wordSearch = req.params.word;
   let regex = new RegExp(wordSearch, "i");
