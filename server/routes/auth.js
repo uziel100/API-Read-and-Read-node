@@ -10,52 +10,61 @@ const information = new Encrytion();
 const app = express();
 
 const User = require("../models/User");
+const { verifyValidFields } = require("../middlewares/validation");
+const { body } = require("express-validator");
+const Regex = require("../clases/Validation");
+const regex = new Regex();
 
-app.post("/login", (req, res) => {
-  const { email, password } = req.body;
+app.post(
+  "/login",
+  body("email").isEmail(),
+  body("password").notEmpty(),
+  verifyValidFields,
+  (req, res) => {
+    const { email, password } = req.body;
 
-  User.findOne({ email }, "email _id role name password photo").exec(
-    (err, userDb) => {
-      if (err) {
-        return res.status(500).json({
-          status: false,
-          message: err,
+    User.findOne({ email }, "email _id role name password photo").exec(
+      (err, userDb) => {
+        if (err) {
+          return res.status(500).json({
+            status: false,
+            message: err,
+          });
+        }
+
+        if (!userDb) {
+          return res.status(400).json({
+            status: false,
+            message: "Usuario o contraseña incorrecto",
+          });
+        }
+
+        if (!bcrypt.compareSync(password, userDb.password)) {
+          return res.status(400).json({
+            status: false,
+            message: "Usuario o contraseña incorrecto",
+          });
+        }
+
+        let token = jwt.sign(
+          {
+            user: userDb,
+          },
+          process.env.SEED,
+          { expiresIn: process.env.EXPIRATION_TOKEN }
+        );
+
+        const { _id, email, photo, name, lastName } = userDb;
+
+        res.json({
+          status: true,
+          user: { _id, email, photo, name, lastName },
+          token,
         });
       }
-
-      if (!userDb) {
-        return res.status(400).json({
-          status: false,
-          message: "Usuario o contraseña incorrecto",
-        });
-      }
-
-      if (!bcrypt.compareSync(password, userDb.password)) {
-        return res.status(400).json({
-          status: false,
-          message: "Usuario o contraseña incorrecto",
-        });
-      }
-
-      let token = jwt.sign(
-        {
-          user: userDb,
-        },
-        process.env.SEED,
-        { expiresIn: process.env.EXPIRATION_TOKEN }
-      );
-
-      const { _id, email, photo, name, lastName } = userDb;
-
-      res.json({
-        status: true,
-        user: { _id, email, photo, name, lastName },
-        token,
-      });
-    }
-  );
-});
-
+    );
+  }
+);
 
 // SETTING GOOGLE
 
@@ -74,7 +83,6 @@ async function verify(token) {
     google: true,
   };
 }
-
 
 app.post("/google", async (req, res) => {
   let token = req.body.idtoken;
@@ -106,7 +114,7 @@ app.post("/google", async (req, res) => {
             usuario: userDb,
           },
           process.env.SEED,
-          { expiresIn: process.env.EXPIRATION_TOKEN}
+          { expiresIn: process.env.EXPIRATION_TOKEN }
         );
 
         return res.json({
@@ -120,7 +128,7 @@ app.post("/google", async (req, res) => {
 
       let newUser = new User();
 
-      newUser.name = information.encrypt( googleUser.name );
+      newUser.name = information.encrypt(googleUser.name);
       newUser.email = googleUser.email;
       newUser.photo = googleUser.photo;
       newUser.signWithGoogle = true;
@@ -152,110 +160,112 @@ app.post("/google", async (req, res) => {
   });
 });
 
+app.post(
+  "/register",
+  body("email").isEmail(),
+  body("password").matches(regex.isStrongPassword()),
+  verifyValidFields,
+  (req, res) => {
+    const { email, password } = req.body;
 
-app.post("/register", (req, res) => {
-  const { email, password } = req.body;
-
-  // Create new User
-  const newUser = new User({
-    email,
-    password: bcrypt.hashSync(password, 10),
-  });
-
-  newUser.save((err, userDb) => {
-    if (err) {
-      return res.status(500).json({
-        status: false,
-        message: "El email ya ha sido registrado por otro usuario",
-      });
-    }
-
-    res.json({
-      status: true,
-      message: "Usuario registrado correctamente",
-      user: userDb,
+    // Create new User
+    const newUser = new User({
+      email,
+      password: bcrypt.hashSync(password, 10),
     });
-  });
-});
 
-app.post("/forgotPassword", (req, res) => {
-  const { email } = req.body;
+    newUser.save((err, userDb) => {
+      if (err) {
+        return res.status(500).json({
+          status: false,
+          message: "El email ya ha sido registrado por otro usuario",
+        });
+      }
 
-  if (!email) {
-    return res.status(400).json({
-      status: false,
-      message: "Necesita un email para seguir con la operación",
+      res.json({
+        status: true,
+        message: "Usuario registrado correctamente",
+        user: userDb,
+      });
     });
   }
+);
 
-  User.findOne({ email }, "_id email signWithGoogle").exec((err, userFounded) => {
-    if (err) {
-      return res.status(500).json({
-        status: false,
-        error: err,
-      });
-    }
+app.post(
+  "/forgotPassword",
+  body("email").notEmpty().isEmail(),
+  verifyValidFields,
+  (req, res) => {
+    const { email } = req.body;
 
-    if (!userFounded) {
-      return res.status(404).json({
-        status: false,
-        message:
-          "La dirección de correo no parece estar registrado en la plataforma",
-      });
-    }
-
-    if(userFounded.signWithGoogle){
-      return res.status(400).json({
-        status: false,
-        message:
-          "Por favor inicia sesión con google",
-      });
-    }
-
-    //create token
-
-    const token = jwt.sign({ user: userFounded }, process.env.SEED, {
-      expiresIn: "10m",
-    });
-    const redirectLink = process.env.URL_SITE + `?t=${token}`;
-
-    transporter.sendMail(
-      {
-        from: '"Olvidaste tu contraseña 👻" <Uzielmelitonh@gmail.com>', // sender address
-        to: email, // list of receivers
-        subject: "Ovidaste tu contraseña ✔", // Subject line
-
-        html: `
-        <p style="margin-bottom: 15px">Por favor da clic en el boton para seguir con el proceso</p>
-          <a href="${ redirectLink }">
-          <button style="background: #2F80ED; border-radius: 6px; color: #fff; padding: 5px 20px">Restablecer contraseña</button>
-        </a>
-        `,
-      },
-      (err) => {
-        if(err) {
+    User.findOne({ email }, "_id email signWithGoogle").exec(
+      (err, userFounded) => {
+        if (err) {
           return res.status(500).json({
             status: false,
-            message: "Ha ocurrido un error al enviar el correo",
+            error: 'Ha ocurrido un error en el servidor',
           });
         }
 
-        res.json({
-          status: true,
-          message: "Email enviado"
+        if (!userFounded) {
+          return res.status(404).json({
+            status: false,
+            message:
+              "La dirección de correo no parece estar registrado en la plataforma",
+          });
+        }
+
+        if (userFounded.signWithGoogle) {
+          return res.status(400).json({
+            status: false,
+            message: "Por favor inicia sesión con google",
+          });
+        }
+
+        //create token
+
+        const token = jwt.sign({ user: userFounded }, process.env.SEED, {
+          expiresIn: "10m",
         });
+        const redirectLink = process.env.URL_SITE + `?t=${token}`;
+
+        transporter.sendMail(
+          {
+            from: '"Olvidaste tu contraseña 👻" <Uzielmelitonh@gmail.com>', // sender address
+            to: email, // list of receivers
+            subject: "Ovidaste tu contraseña ✔", // Subject line
+
+            html: `
+          <p style="margin-bottom: 15px">Por favor da clic en el boton para seguir con el proceso</p>
+            <a href="${redirectLink}">
+            <button style="background: #2F80ED; border-radius: 6px; color: #fff; padding: 5px 20px">Restablecer contraseña</button>
+          </a>
+          `,
+          },
+          (err) => {
+            if (err) {
+              return res.status(500).json({
+                status: false,
+                message: "Ha ocurrido un error al enviar el correo",
+              });
+            }
+
+            res.json({
+              status: true,
+              message: "Email enviado",
+            });
+          }
+        );
       }
     );
-
-  });
-});
+  }
+);
 
 app.post("/restorePassword", checkToken, (req, res) => {
   const { _id: userId } = req.user;
   const { email, password } = req.body;
 
   const hashPassword = bcrypt.hashSync(password, 10);
-
 
   User.findOne({ email }, (err, userFounded) => {
     if (err) {
@@ -268,25 +278,29 @@ app.post("/restorePassword", checkToken, (req, res) => {
     if (!userFounded) {
       return res.status(404).json({
         status: false,
-        message:
-          "La dirección de correo no existe",
+        message: "La dirección de correo no existe",
       });
     }
 
-    User.findByIdAndUpdate(userId, { password: hashPassword },  { new: true }, (err, user) => {
-      if (err) {
-        return res.status(500).json({
-          status: false,
-          error: "No se ha podido actualizar la contraseña",
+    User.findByIdAndUpdate(
+      userId,
+      { password: hashPassword },
+      { new: true },
+      (err, user) => {
+        if (err) {
+          return res.status(500).json({
+            status: false,
+            error: "No se ha podido actualizar la contraseña",
+          });
+        }
+
+        res.json({
+          status: true,
+          message: "Contraseña actualizada",
         });
       }
-  
-      res.json({
-        status: true,
-        message: "Contraseña actualizada"
-      });
-    });
-  })
+    );
+  });
 });
 
 module.exports = app;

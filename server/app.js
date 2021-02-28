@@ -9,6 +9,7 @@ const app = express();
 app.use( bodyParse.urlencoded({ extended: false }) );
 app.use( bodyParse.json() )
 
+
 // Enable file public
 app.use( express.static( path.resolve(__dirname, "../public")) )
 

@@ -5,9 +5,17 @@ const jwt = require('jsonwebtoken');
 // ===========================
 
 const checkToken = (req, res, next) => {
-    // Get token at custon header 
-    let token = req.headers['token'].split(" ")[1];
-    // let token = req.get('token');
+    // Get token at custon header     
+    let token = req.headers['token'];
+    if(!token){        
+        return res.status(401).json({
+                status: false,
+                message: "Necesitas un token"
+         })
+        
+    }
+    
+    token = token.split(" ")[1]    
         
     jwt.verify(token, process.env.SEED, (err, decoded) => {
     
