@@ -4,7 +4,7 @@ module.exports = class Regex{
         return /^[a-zA-ZÀ-ÿ\u00f1\u00d1]+(\s*[a-zA-ZÀ-ÿ\u00f1\u00d1]*)*[a-zA-ZÀ-ÿ\u00f1\u00d1]+$/;
     }    
     isOnlyText(){
-        return /^[!¡?¿,.A-ZÀ-ÿa-z0-9\s\u00f1\u00d1]+$/g
+        return /^[!¡?¿,.A-ZÀ-ÿa-z0-9\s\u00f1\u00d1]+$/;
     }
 
     isStrongPassword(){
