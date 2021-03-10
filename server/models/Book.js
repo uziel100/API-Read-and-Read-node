@@ -21,10 +21,12 @@ let bookSchema = new Schema({
     },
     imgUrl: {
         type: String,
+	default: '',
         required: false
     },
     lang: {
-        type: String,
+        ref: 'Languaje',
+        type: Schema.Types.ObjectId,        
         required: [true, "El idioma es obligatorio"]
     },
     numPages: {
@@ -34,6 +36,11 @@ let bookSchema = new Schema({
     sizeFile: {
         type: String,
         required: [true, "El tamaño del archivo es obligatorio"]
+    },
+    fileName: {
+        type: String,
+	default: '',
+        required: false
     },
     price: {
         type: Number,
@@ -45,10 +52,12 @@ let bookSchema = new Schema({
             type: Schema.Types.ObjectId
         }
     ],
-    publisher: {
-        type: String,
-        required: true
-    },
+    publisher: [
+        {
+            ref: 'Publisher',
+            type: Schema.Types.ObjectId
+        },
+    ], 
     category: {
         ref: 'Category',
         type: Schema.Types.ObjectId

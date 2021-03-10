@@ -26,12 +26,14 @@ app.get("/feedback", isAdmin, (req, res) => {
 
 app.post(
   "/feedback",
+  [
   verifyRecaptcha,
-  body("name").trim().matches(regex.isOnlyLetters()),
-  body("email").trim().isEmail(),
-  body("phone").trim().isLength({ min: 10, max: 10 }).isNumeric(),
-  body("comment").trim().matches(regex.isOnlyText()),
-  verifyValidFields,
+    body("name").matches(regex.isOnlyLetters()).trim(),
+    body("email").isEmail().trim(),
+    body("phone").isLength({ min: 10, max: 10 }).isNumeric().trim(),
+    body("comment").matches( regex.isOnlyText() ).trim(),
+    verifyValidFields
+  ],
   (req, res) => {
     const { name, email, phone, comment } = req.body;
 

@@ -14,7 +14,7 @@ app.get('/author', (req, res) => {
         }
         res.json({
             status: true,
-            authors
+            data: authors
         })
     })
 })
@@ -34,6 +34,29 @@ app.post('/author', (req, res) => {
         res.json({
             status: true,
             author
+        })
+    })
+})
+
+app.put('/author/:id', (req, res) => {
+    const { id } = req.params;
+    const { name, about } = req.body;
+    
+
+    Author.findByIdAndUpdate(
+        id, 
+        { name, about },
+        { new: true, runValidators: true },
+        (err) => {
+        if(err) {
+            return res.status(500).json({
+                status:false,
+                message: 'No exise el elemento que quiere actualizar'
+            })
+        }
+        res.json({
+            status: true,
+            message: 'Datos actualizados :)'
         })
     })
 })

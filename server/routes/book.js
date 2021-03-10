@@ -18,9 +18,14 @@ app.get("/book", (req, res) => {
   Book.find()
     .populate("category", "name niceName")
     .populate("subCategory", "name niceName")
+    .populate("languaje", "name")
     .populate({
       path: "author",
       populate: { path: "author" },
+    })
+    .populate({
+      path: "publisher",
+      populate: { path: "publisher" },
     })
     .exec((err, books) => {
       if (err) {
@@ -121,6 +126,10 @@ app.get("/book/:id", (req, res) => {
       path: "author",
       populate: { path: "author" },
     })
+    .populate({
+      path: "publisher",
+      populate: { path: "publisher" },
+    })    
     .exec((err, book) => {
       if (err) {
         return res.status(404).json({
@@ -139,7 +148,7 @@ app.get("/book/:id", (req, res) => {
 app.get("/book/subcategory/:idSubCategory", (req, res) => {
   const subCategory = req.params.idSubCategory;
 
-  Book.find({ subCategory }, "_id title price author")
+  Book.find({ subCategory }, "_id title price author imgUrl")
     .populate({ path: "author", populate: { path: "author" } })
     .exec((err, books) => {
       if (err) {
@@ -174,8 +183,8 @@ const removeDuplicateAuthor = (authors) => {
 
   return listAuthors;
 };
-
-app.post("/book", [checkToken, isAdmin], (req, res) => {
+// [checkToken, isAdmin]
+app.post("/book",  (req, res) => {
   const booKData = _.pick(req.body, [
     "ISBN",
     "title",
@@ -188,7 +197,7 @@ app.post("/book", [checkToken, isAdmin], (req, res) => {
     "publisher",
     "category",
     "subCategory",
-  ]);
+  ]); 
 
   const newBook = new Book(booKData);
 
@@ -196,13 +205,40 @@ app.post("/book", [checkToken, isAdmin], (req, res) => {
     if (err) {
       return res.status(500).json({
         status: false,
-        message: "Ha ocurrido un error al crear la categoria",
+        message: "Ha ocurrido un error al crear la libro",
       });
     }
 
     res.json({
       status: true,
+      message: 'Libro agregado :)',
       book,
+    });
+  });
+});
+// [checkToken, isAdmin]
+app.put("/book/file/:id",  (req, res) => {
+  const { id  } = req.params;
+  const bookData = _.pick(req.body, [
+    "imgUrl",
+    "fileName",
+  ]);     
+  Book.findByIdAndUpdate(
+    id,     
+    bookData,
+    { new: true, runValidators: true },
+    (err, book) => {
+    if (err) {
+      return res.status(500).json({
+        status: false,
+        message: "Ha ocurrido un error al actualizar",
+      });
+    }
+
+    res.json({
+      status: true,
+      message: 'Actualizado correctamente :)',  
+      book
     });
   });
 });

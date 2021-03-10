@@ -9,5 +9,9 @@ app.use( require('./book') );
 app.use( require('./subcategory') );
 app.use( require('./author') );
 app.use( require('./feedback') );
+app.use( require('./upload') );
+app.use( require('./languaje') );
+app.use( require('./publisher') );
+app.use( require('./sms') );
 
 module.exports = app;

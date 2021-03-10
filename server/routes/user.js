@@ -65,18 +65,18 @@ app.get(
 
 app.put(
   "/user/:id",
+  [checkToken,
   body("name").trim().matches(regex.isOnlyLetters()),
   body("lastName").trim().matches(regex.isOnlyLetters()),
-  body("address").trim().matches(regex.isOnlyText()),
   body("phone").trim().isLength({ min: 10, max: 10 }).isNumeric(),
   body("birthDate").matches(regex.isDate()),
   body("gender").isIn(["Masculino", "Femenino"]),
-  verifyValidFields,
+  verifyValidFields],
   (req, res) => {
     const id = req.params.id;
     const { name, lastName, address, phone, birthDate, gender } = req.body;
 
-    const dataEconded = {
+    const dataEncoded = {
       name: information.encrypt(name),
       lastName: information.encrypt(lastName),
       address: information.encrypt(address),
@@ -85,7 +85,7 @@ app.put(
       gender: information.encrypt(gender),
     };
 
-    User.findByIdAndUpdate(id, dataEconded, (err, userDb) => {
+    User.findByIdAndUpdate(id, dataEncoded, (err, userDb) => {
       if (err) {
         return res.status(500).json({
           status: false,
@@ -95,7 +95,7 @@ app.put(
 
       res.send({
         status: true,
-        message: "Datos actualizados",
+        message: "Datos actualizados :)",
       });
     });
   }
