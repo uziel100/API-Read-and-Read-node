@@ -55,3 +55,20 @@ process.env.URL_SITE = link
 // CLIENT ID GOOGLE
 // ========================
 process.env.CLIENT_ID = process.env.CLIENT_ID || '451024139586-ngq240pmq03op37iro4o8d73o64g641f.apps.googleusercontent.com'
+
+
+// ==================
+// AWS credentials - bucket
+// ==================
+process.env.S3_BUCKET = "read-and-read-bck"
+process.env.S3region = 'us-east-1'
+process.env.S3accessKeyId = "AKIAJ6YJUVAKRS6EVZSQ"
+process.env.S3secretAccessKey = "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"
+
+// ==================
+// SMS - TWILIO
+// ==================
+
+process.env.serviceID = "VA0dd0f7669019ded347005cd1b6a747f2"
+process.env.accountSID = "ACd5fa47c2c5e9fa4b9a035494cbd42209"
+process.env.authToken = "1b2e0b069b04c1a89d90166ca7797df3"

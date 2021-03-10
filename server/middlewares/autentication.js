@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 // ===========================
 
 const checkToken = (req, res, next) => {
+
     // Get token at custon header     
     let token = req.headers['token'];
     if(!token){        
@@ -32,6 +33,9 @@ const checkToken = (req, res, next) => {
 }
 
 const isAdmin = (req, res, next) => {
+if(process.env.NODE_ENV === 'dev'){
+return next();
+}
     const role = req.user.role;
     const hasRoleAdmin = role === 'ADMIN_ROLE'
 
