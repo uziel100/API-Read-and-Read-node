@@ -2,7 +2,6 @@ require("./config/index");
 const app = require("./app");
 const mongoose = require("mongoose");
 
-
 mongoose.connect(
   process.env.urlDB,
   {
