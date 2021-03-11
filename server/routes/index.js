@@ -13,5 +13,6 @@ app.use( require('./upload') );
 app.use( require('./languaje') );
 app.use( require('./publisher') );
 app.use( require('./sms') );
+app.use( require('./question') );
 
 module.exports = app;

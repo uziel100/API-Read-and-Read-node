@@ -59,6 +59,16 @@ let userSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  questionSecret:{
+    question:{
+      ref: 'Question',
+      type: Schema.Types.ObjectId,      
+    },
+    answer:{
+      type: String
+    },
+    required: false,
+  }
 }, {
   timestamps: true,
   versionKey: false

@@ -85,7 +85,7 @@ app.post(
 
             res.json({
               status: true,
-              message: "El código ha sido enviado",            
+              message: "El código ha sido enviado",
             });
           });
         }
@@ -397,6 +397,68 @@ app.post("/restorePassword", checkToken, (req, res) => {
         });
       }
     );
+  });
+});
+
+app.post("/restorePasswordWithQuestionSecret", (req, res) => {
+  const { email, question, answer } = req.body;
+
+  User.findOne({ email }, (err, user) => {
+    if (err) {
+      return res.status(500).json({
+        status: false,
+        message: "Error en el servidor",
+      });
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        status: false,
+        message: "El email no esta registrado en la plataforma",
+      });
+    }
+
+    // user exist
+    if (!user.questionSecret.hasOwnProperty("question")) {
+      return res.status(400).json({
+        status: false,
+        message: "No has registrado una pregunta, utiliza otro método",
+      });
+    }
+
+    // there's question
+    // verify if correct question
+
+    if (
+      user.questionSecret.question.toString() === question &&
+      user.questionSecret.answer === answer
+    ) {
+      // Generate code
+      const password = generator.generate({
+        length: 10,
+        numbers: true,
+      });
+
+      const hashPassword = bcrypt.hashSync(password, 10);
+      User.findByIdAndUpdate(user._id, { password: hashPassword }, (err) => {
+        if (err) {
+          return res.status(500).json({
+            status: false,
+            message: "Error en el servidor",
+          });
+        }
+
+        res.json({
+          status: true,
+          message: "Contraseña restablida :)",
+          password,
+        });
+      });
+    } else {
+      return res.json({
+        message: "Respuestas icorrectas",
+      });
+    }
   });
 });
 

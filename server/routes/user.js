@@ -33,7 +33,7 @@ app.get(
   verifyValidFields,
   (req, res) => {
     const id = req.params.id;
-    
+
     User.findById(id, (err, userDb) => {
       if (err) {
         return res.status(404).json({
@@ -65,13 +65,15 @@ app.get(
 
 app.put(
   "/user/:id",
-  [checkToken,
-  body("name").trim().matches(regex.isOnlyLetters()),
-  body("lastName").trim().matches(regex.isOnlyLetters()),
-  body("phone").trim().isLength({ min: 10, max: 10 }).isNumeric(),
-  body("birthDate").matches(regex.isDate()),
-  body("gender").isIn(["Masculino", "Femenino"]),
-  verifyValidFields],
+  [
+    checkToken,
+    body("name").trim().matches(regex.isOnlyLetters()),
+    body("lastName").trim().matches(regex.isOnlyLetters()),
+    body("phone").trim().isLength({ min: 10, max: 10 }).isNumeric(),
+    body("birthDate").matches(regex.isDate()),
+    body("gender").isIn(["Masculino", "Femenino"]),
+    verifyValidFields,
+  ],
   (req, res) => {
     const id = req.params.id;
     const { name, lastName, address, phone, birthDate, gender } = req.body;
@@ -100,5 +102,48 @@ app.put(
     });
   }
 );
+
+app.put("/user/question/answer", (req, res) => {
+  const { question, answer } = req.body;
+  const { _id } = req.user;
+  console.log(question, answer);
+
+  User.findOne({ _id }, (err, user) => {
+    if (err) {
+      return res.status(500).json({
+        status: false,
+        message: "Error en el servidor",
+      });
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        status: false,
+        message: "Usuario no encontrado",
+      });
+    }
+
+    // user exist    
+    User.findByIdAndUpdate(
+      user._id,
+      { questionSecret: { question, answer } },
+      { new: true, runValidators: true },
+      (err, userDb) => {
+        if (err) {
+          return res.status(500).json({
+            status: false,
+            message: "Error en el servidor",
+            err,
+          });
+        }
+
+        res.json({
+          status: true,
+          userDb,
+        });
+      }
+    );
+  });
+});
 
 module.exports = app;
