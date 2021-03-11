@@ -1,15 +1,17 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const generator = require("generate-password");
 const { transporter } = require("../config/mailer");
 const { checkToken } = require("../middlewares/autentication");
 const { OAuth2Client } = require("google-auth-library");
-const client = new OAuth2Client(process.env.CLIENT_ID);
 const Encrytion = require("../clases/Encryption");
 const information = new Encrytion();
 const app = express();
+const client = new OAuth2Client(process.env.CLIENT_ID);
 
 const User = require("../models/User");
+const Code = require("../models/Code");
 const { verifyValidFields } = require("../middlewares/validation");
 const { body } = require("express-validator");
 const Regex = require("../clases/Validation");
@@ -23,46 +25,141 @@ app.post(
   (req, res) => {
     const { email, password } = req.body;
 
-    User.findOne({ email }, "email _id role name password photo").exec(
-      (err, userDb) => {
+    User.findOne({ email }).exec((err, userDb) => {
+      if (err) {
+        return res.status(500).json({
+          status: false,
+          message: err,
+        });
+      }
+
+      if (!userDb) {
+        return res.status(400).json({
+          status: false,
+          message: "Usuario o contraseña incorrecto",
+        });
+      }
+
+      if (!bcrypt.compareSync(password, userDb.password)) {
+        return res.status(400).json({
+          status: false,
+          message: "Usuario o contraseña incorrecto",
+        });
+      }
+
+      // Generate code
+      const code = generator.generate({
+        length: 10,
+        numbers: true,
+      });
+
+      // Send msg to email
+      transporter.sendMail(
+        {
+          from: '"Codigo de verificación 😎" <Uzielmelitonh@gmail.com>', // sender address
+          to: email, // list of receivers
+          subject: "Codigo de verificación (>‿◠)✌", // Subject line
+
+          html: `
+              <p style="margin-bottom: 15px">No compartas este código</p>                      
+              <h1>${code}</h1>
+            `,
+        },
+        (err) => {
+          if (err) {
+            return res.status(500).json({
+              status: false,
+              message: "Ha ocurrido un error al enviar el correo",
+            });
+          }
+
+          // Save code in database
+          const newCode = new Code({ code });
+          newCode.save((err) => {
+            if (err) {
+              return res.status(500).json({
+                status: false,
+                message: "Ha ocurrido un error en el servidor",
+              });
+            }
+
+            res.json({
+              status: true,
+              message: "El código ha sido enviado",            
+            });
+          });
+        }
+      );
+    });
+  }
+);
+
+app.post(
+  "/login/twoFactor",
+  body("email").isEmail(),
+  body("code").notEmpty(),
+  (req, res) => {
+    const { email, code } = req.body;
+
+    User.findOne({ email }).exec((err, userDb) => {
+      if (err) {
+        return res.status(500).json({
+          status: false,
+          message: err,
+        });
+      }
+
+      if (!userDb) {
+        return res.status(400).json({
+          status: false,
+          message: "Email inválido",
+        });
+      }
+
+      Code.findOne({ code }).exec((err, codDb) => {
         if (err) {
           return res.status(500).json({
             status: false,
-            message: err,
+            message: "Ha ocurrido un error en el servidor",
           });
         }
 
-        if (!userDb) {
-          return res.status(400).json({
+        if (!codDb) {
+          return res.status(404).json({
             status: false,
-            message: "Usuario o contraseña incorrecto",
+            message: "El código no es válido",
           });
         }
 
-        if (!bcrypt.compareSync(password, userDb.password)) {
-          return res.status(400).json({
-            status: false,
-            message: "Usuario o contraseña incorrecto",
+        // Delete code fron database
+
+        Code.findByIdAndRemove(codDb._id, (err) => {
+          if (err) {
+            return res.status(500).json({
+              status: false,
+              message: "Ha ocurrido un error en el servidor",
+            });
+          }
+
+          // generate token
+          let token = jwt.sign(
+            {
+              user: userDb,
+            },
+            process.env.SEED,
+            { expiresIn: process.env.EXPIRATION_TOKEN }
+          );
+
+          const { _id, email, photo, name, lastName } = userDb;
+
+          res.json({
+            status: true,
+            user: { _id, email, photo, name, lastName },
+            token,
           });
-        }
-
-        let token = jwt.sign(
-          {
-            user: userDb,
-          },
-          process.env.SEED,
-          { expiresIn: process.env.EXPIRATION_TOKEN }
-        );
-
-        const { _id, email, photo, name, lastName } = userDb;
-
-        res.json({
-          status: true,
-          user: { _id, email, photo, name, lastName },
-          token,
         });
-      }
-    );
+      });
+    });
   }
 );
 
@@ -203,7 +300,7 @@ app.post(
         if (err) {
           return res.status(500).json({
             status: false,
-            error: 'Ha ocurrido un error en el servidor',
+            error: "Ha ocurrido un error en el servidor",
           });
         }
 
