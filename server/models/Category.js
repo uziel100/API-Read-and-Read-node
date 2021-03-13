@@ -14,6 +14,10 @@ let categorySchema = new Schema({
         required: true,
         unique: true
     },
+    img:{
+        type: String,
+        required: false
+    }
 },{
     timestamps: true,
     versionKey: false

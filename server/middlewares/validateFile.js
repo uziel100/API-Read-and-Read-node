@@ -1,6 +1,6 @@
 const typesImgAllow = ["png", "jpg", "jpeg"];
 const typesFilesAllow = ["pdf"];
-const typesCollectionsAllow = ["avatar", "imageBook", "fileBook"];
+const typesCollectionsAllow = ["avatar", "imageBook", "fileBook", "imgCategory"];
 
 const validTypeCollection = (req, res, next) => {
   const { type } = req.params;
@@ -35,7 +35,7 @@ const validTypeFile = (req, res, next) => {
   const fileType = nameSplit[nameSplit.length - 1];
   const fileName = `${ id }-${ new Date().getMilliseconds() }.${ fileType }`        
 
-  if(type === 'avatar' || type === 'imageBook'){
+  if(type === 'avatar' || type === 'imageBook' || type === 'imgCategory'){
     if (typesImgAllow.includes(fileType)) {
       req.fileName = fileName;
       req.fileType = fileType;

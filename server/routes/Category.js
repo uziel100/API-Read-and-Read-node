@@ -7,7 +7,7 @@ const _ = require('underscore')
 const app = express();
 
 app.get("/category/only", (req, res) => {
-  Category.find({}, "_id name niceName")
+  Category.find({}, "_id name niceName img")
     .sort({ _id: -1 })
     .exec((err, categories) => {
       if (err) {
@@ -25,7 +25,7 @@ app.get("/category/only", (req, res) => {
 }); 
 
 app.get("/category", (req, res) => {
-  Category.find({}, "_id name niceName")
+  Category.find({}, "_id name niceName img")
     .sort({ _id: -1 })
     .exec((err, categories) => {
       if (err) {
@@ -81,7 +81,7 @@ app.get("/category/:id", (req, res) => {
   });
 });
 
-app.post("/category", [checkToken, isAdmin], (req, res) => {
+app.post("/category", (req, res) => {
   const { name, niceName } = req.body;
 
   const newCategory = new Category({ name, niceName });
@@ -101,10 +101,10 @@ app.post("/category", [checkToken, isAdmin], (req, res) => {
   });
 });
 
-app.put("/category/:id", [checkToken, isAdmin], (req, res) => {
+app.put("/category/:id", (req, res) => {
   const idcategory = req.params.id;
 
-  const body = _.pick(req.body, ["name", "niceName"]);
+  const body = _.pick(req.body, ["name", "niceName", "img"]);
 	
   Category.findByIdAndUpdate(
     idcategory,
@@ -126,7 +126,7 @@ app.put("/category/:id", [checkToken, isAdmin], (req, res) => {
   );
 });
 
-app.delete("/category/:id", [checkToken, isAdmin], (req, res) => {
+app.delete("/category/:id", (req, res) => {
   const idcategory = req.params.id;
 	
   Category.findByIdAndRemove(

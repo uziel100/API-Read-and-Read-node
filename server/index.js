@@ -2,6 +2,8 @@ require("./config/index");
 const app = require("./app");
 const mongoose = require("mongoose");
 
+console.log(typeof process.env.accountSID )
+ 
 mongoose.connect(
   process.env.urlDB,
   {

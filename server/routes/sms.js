@@ -15,6 +15,7 @@ app.post(
   verifyValidFields,
   (req, res) => {
     const { email, phoneNumber } = req.body;
+    console.log( process.env.serviceID );
 
     User.findOne({ email }, "_id email").exec((err, userFounded) => {
       if (err) {

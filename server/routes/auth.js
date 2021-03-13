@@ -419,12 +419,12 @@ app.post("/restorePasswordWithQuestionSecret", (req, res) => {
     }
 
     // user exist
-    if (!user.questionSecret.hasOwnProperty("question")) {
+    if (!(user.hasOwnProperty("questionSecret") || user.questionSecret.hasOwnProperty("question"))) {
       return res.status(400).json({
         status: false,
         message: "No has registrado una pregunta, utiliza otro método",
       });
-    }
+    }    
 
     // there's question
     // verify if correct question
@@ -450,12 +450,13 @@ app.post("/restorePasswordWithQuestionSecret", (req, res) => {
 
         res.json({
           status: true,
-          message: "Contraseña restablida :)",
+          message: "Contraseña restablecida :)",
           password,
         });
       });
     } else {
-      return res.json({
+      return res.status(400).json({
+        status: false,
         message: "Respuestas icorrectas",
       });
     }

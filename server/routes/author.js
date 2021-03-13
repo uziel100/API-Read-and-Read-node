@@ -5,7 +5,9 @@ const app = express();
 const Author = require("../models/Author");
 
 app.get('/author', (req, res) => {
-    Author.find( (err, authors) => {
+    Author.find({}, "name about _id")
+	.sort({ _id: -1 })
+	.exec((err, authors) => {
         if(err) {
             return res.status(500).json({
                 status:false,
@@ -57,6 +59,25 @@ app.put('/author/:id', (req, res) => {
         res.json({
             status: true,
             message: 'Datos actualizados :)'
+        })
+    })
+})
+
+app.delete('/author/:id', (req, res) => {
+    const { id } = req.params;    
+    
+
+    Author.findByIdAndRemove(id,         
+        (err) => {
+        if(err) {
+            return res.status(500).json({
+                status:false,
+                message: 'Ha ocurrido un error al eliminar el autor'
+            })
+        }
+        res.json({
+            status: true,
+            message: 'Eliminado correctamente :)'
         })
     })
 })
