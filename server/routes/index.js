@@ -14,5 +14,6 @@ app.use( require('./languaje') );
 app.use( require('./publisher') );
 app.use( require('./sms') );
 app.use( require('./question') );
+app.use( require('./comment') );
 
 module.exports = app;

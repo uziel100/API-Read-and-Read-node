@@ -191,7 +191,8 @@ app.post("/google", async (req, res) => {
     });
   });
 
-  User.findOne({ email: googleUser.email }, (err, userDb) => {
+  User.findOne({ email: googleUser.email }, 'email name photo role signWithGoogle _id')
+	.exec((err, userDb) => {
     if (err) {
       return res.status(500).json({
         status: false,
@@ -418,6 +419,13 @@ app.post("/restorePasswordWithQuestionSecret", (req, res) => {
       });
     }
 
+    if (user.signWithGoogle) {
+    return res.status(400).json({
+        status: false,
+        message: "Por favor inicia sesión con google",
+      });
+    }
+
     // user exist
     if (!(user.hasOwnProperty("questionSecret") || user.questionSecret.hasOwnProperty("question"))) {
       return res.status(400).json({
@@ -462,5 +470,7 @@ app.post("/restorePasswordWithQuestionSecret", (req, res) => {
     }
   });
 });
+
+
 
 module.exports = app;

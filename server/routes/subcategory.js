@@ -110,4 +110,26 @@ app.put("/subcategory/:id", (req, res) => {
   );
 });
 
+app.delete("/subcategory/:id", (req, res) => {
+  const idSubcategory = req.params.id;
+
+  Subcategory.findByIdAndRemove(
+    idSubcategory,
+    (err) => {
+      if (err) {
+        return res.status(500).json({
+          status: false,
+          message:
+            "Ocurrio algún error al eliminar",
+        });
+      }
+
+      return res.status(200).json({
+        status: true,
+	message: 'Eliminado correctamente :)'
+      });
+    }
+  );
+});
+
 module.exports = app;

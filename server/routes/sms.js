@@ -17,7 +17,7 @@ app.post(
     const { email, phoneNumber } = req.body;
     console.log( process.env.serviceID );
 
-    User.findOne({ email }, "_id email").exec((err, userFounded) => {
+    User.findOne({ email }, "_id email signWithGoogle").exec((err, userFounded) => {
       if (err) {
         return res.status(500).json({
           status: false,
@@ -31,6 +31,13 @@ app.post(
             "La dirección de correo no parece estar registrado en la plataforma",
         });
       }
+
+    if (userFounded.signWithGoogle) {
+    return res.status(400).json({
+        status: false,
+        message: "Por favor inicia sesión con google",
+      });
+    }
 
       // Send message
 

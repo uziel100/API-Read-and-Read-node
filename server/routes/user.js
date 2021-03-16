@@ -40,7 +40,7 @@ app.get(
           status: false,
           message: "Usuario no encontrado",
         });
-      }
+      } 
 
       userDb.name = userDb.name ? information.decrypt(userDb.name) : "";
       userDb.address = userDb.address
@@ -58,6 +58,32 @@ app.get(
       res.json({
         status: true,
         user: userDb,
+      });
+    });
+  }
+);
+
+app.put(
+  "/user/avatar/:id",
+  [
+    checkToken  
+  ],
+  (req, res) => {
+    const id = req.params.id;
+    const { photo } = req.body;
+
+
+    User.findByIdAndUpdate(id, { photo }, (err, userDb) => {
+      if (err) {
+        return res.status(500).json({
+          status: false,
+          message: err,
+        });
+      }
+
+      res.send({
+        status: true,
+        message: "Foto de perfil actualizado :)",
       });
     });
   }
@@ -103,7 +129,7 @@ app.put(
   }
 );
 
-app.put("/user/question/answer", (req, res) => {
+app.put("/user/question/answer", [checkToken] ,(req, res) => {
   const { question, answer } = req.body;
   const { _id } = req.user;
   console.log(question, answer);

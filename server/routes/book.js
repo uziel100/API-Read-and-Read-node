@@ -4,6 +4,7 @@ const { checkToken, isAdmin } = require("../middlewares/autentication");
 const app = express();
 
 const Book = require("../models/Book");
+const Comment = require("../models/Comment");
 
 app.get("/test", (req, res) => {
   const params = req.query.author;
@@ -43,7 +44,7 @@ app.get("/book", (req, res) => {
 });
 
 app.get("/book/new", (req, res) => {
-  Book.find({}, "_id title price")
+  Book.find({}, "_id title price imgUrl")
     .sort({ _id: -1 })
     .limit(10)
     .exec( (err, books) => {
@@ -68,7 +69,7 @@ app.get("/book/search/:word", (req, res) => {
 
   Book.find(
     { $or: [{ title: regex }, { summary: regex }, { ISBN: regex }] },
-    "_id title price"
+    "_id title price imgUrl"
   ).exec((err, books) => {
     if (err) {
       return res.status(400).json({
@@ -100,7 +101,7 @@ app.get("/book/advanceSearch", (req, res) => {
 
 
   Book.find({ $and: [{title: regexTitle}, {subCategory: idcategory}, { author } ]  },
-    "_id title price"
+    "_id title price imgUrl"
   ).exec((err, books) => {
     if (err) {
       return res.status(400).json({
@@ -122,6 +123,7 @@ app.get("/book/:id", (req, res) => {
   Book.findById(idBook)
     .populate("category", "name niceName")
     .populate("subCategory", "name niceName")
+    .populate("lang", "name")
     .populate({
       path: "author",
       populate: { path: "author" },
@@ -226,7 +228,7 @@ app.put("/book/file/:id",  (req, res) => {
   Book.findByIdAndUpdate(
     id,     
     bookData,
-    { new: true, runValidators: true },
+    { new: true},
     (err, book) => {
     if (err) {
       return res.status(500).json({
@@ -242,5 +244,61 @@ app.put("/book/file/:id",  (req, res) => {
     });
   });
 });
+
+app.put("/book/:id",  (req, res) => {
+  const { id  } = req.params;
+  const booKData = _.pick(req.body, [
+    "ISBN",
+    "title",
+    "summary",
+    "lang",
+    "numPages",
+    "sizeFile",
+    "price",
+    "author",
+    "publisher",
+    "category",
+    "subCategory",
+    "score"
+  ]); 
+
+  Book.findByIdAndUpdate(
+    id,     
+    booKData,
+    { new: true},
+    (err, book) => {
+    if (err) {
+      return res.status(500).json({
+        status: false,
+        message: "Ha ocurrido un error al actualizar",
+      });
+    }
+
+    res.json({
+      status: true,
+      message: 'Actualizado correctamente :)',       
+    });
+  });
+});
+
+app.post("/book/comment/:user",  (req, res) => {
+  const { user } = req.params
+  const { content, score, book } = req.body;
+  const newComment = new Comment({ content, score, user, book });
+
+  newComment.save( err => {
+    if (err) {
+      return res.status(500).json({
+        status: false,
+        message: "Ha ocurrido un error enviar el comentario",
+      })
+    }
+
+    res.json({
+      status: true,
+      message: 'Comentario enviado :)',        
+    });
+  })
+})
 
 module.exports = app;
