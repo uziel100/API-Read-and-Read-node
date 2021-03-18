@@ -150,11 +150,11 @@ app.post(
             { expiresIn: process.env.EXPIRATION_TOKEN }
           );
 
-          const { _id, email, photo, name, lastName } = userDb;
+          const { _id, email, photo, name, lastName, role } = userDb;
 
           res.json({
             status: true,
-            user: { _id, email, photo, name, lastName },
+            user: { _id, email, photo, name, lastName, role },
             token,
           });
         });
@@ -209,7 +209,7 @@ app.post("/google", async (req, res) => {
       } else {
         let token = jwt.sign(
           {
-            usuario: userDb,
+            user: userDb,
           },
           process.env.SEED,
           { expiresIn: process.env.EXPIRATION_TOKEN }

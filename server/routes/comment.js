@@ -44,6 +44,27 @@ app.get('/comment/book/:id', (req, res) => {
     })
 })
 
+app.get('/comment/user/:id', (req, res) => {
+    const { id } = req.params;
+    
+    Comment.find({ user: id })
+    .populate("book", "imgUrl title")
+	.sort({ _id: -1 })
+	.exec((err, comments) => {
+        if(err) {
+            return res.status(500).json({
+                status:false,
+                message: 'Ha ocurrido un error'
+            })
+        }
+
+
+        res.json({
+            status: true,
+            data: comments
+        })
+    })
+})
 
 
 
