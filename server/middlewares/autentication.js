@@ -32,10 +32,23 @@ const checkToken = (req, res, next) => {
     })       
 }
 
-const isAdmin = (req, res, next) => {
-if(process.env.NODE_ENV === 'dev'){
-return next();
+const isUser = (req, res, next) => {
+
+    const role = req.user.role;
+    const hasRoleUser = role === 'USER_ROLE'
+
+    if(!hasRoleUser){
+        return res.status(401).json({
+            status: false,
+            message: 'No tienes permisos sobre este recurso'
+        });
+    }else{
+        next();
+    }
 }
+
+const isAdmin = (req, res, next) => {
+
     const role = req.user.role;
     const hasRoleAdmin = role === 'ADMIN_ROLE'
 
@@ -53,5 +66,6 @@ return next();
 
 module.exports = {
     checkToken,
-    isAdmin    
+    isAdmin,
+    isUser   
 }

@@ -4,7 +4,7 @@ const app = express();
 
 const Author = require("../models/Author");
 
-app.get('/author', (req, res) => {
+app.get('/author', [ checkToken, isAdmin ] ,(req, res) => {
     Author.find({}, "name about _id")
 	.sort({ _id: -1 })
 	.exec((err, authors) => {
@@ -21,7 +21,7 @@ app.get('/author', (req, res) => {
     })
 })
 
-app.post('/author', (req, res) => {
+app.post('/author', [ checkToken, isAdmin ] , (req, res) => {
     const { name, about } = req.body;
     
     let newAuthor = new Author({ name, about })
@@ -40,7 +40,7 @@ app.post('/author', (req, res) => {
     })
 })
 
-app.put('/author/:id', (req, res) => {
+app.put('/author/:id', [ checkToken, isAdmin ] , (req, res) => {
     const { id } = req.params;
     const { name, about } = req.body;
     
@@ -63,7 +63,7 @@ app.put('/author/:id', (req, res) => {
     })
 })
 
-app.delete('/author/:id', (req, res) => {
+app.delete('/author/:id', [ checkToken, isAdmin ] , (req, res) => {
     const { id } = req.params;    
     
 

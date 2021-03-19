@@ -1,5 +1,6 @@
 const express = require("express");
 const Publisher = require("../models/Publisher");
+const { checkToken, isAdmin } = require("../middlewares/autentication");
 const app = express();
 
 app.get("/publisher", (req, res) => {
@@ -19,7 +20,7 @@ app.get("/publisher", (req, res) => {
   });
 });
 
-app.post("/publisher", (req, res) => {
+app.post("/publisher", [ checkToken, isAdmin ], (req, res) => {
   const { name } = req.body;
 
   const newPublisher = new Publisher({ name });
@@ -39,7 +40,7 @@ app.post("/publisher", (req, res) => {
   });
 });
 
-app.put("/publisher/:id", (req, res) => {
+app.put("/publisher/:id", [ checkToken, isAdmin ], (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
 
@@ -62,7 +63,7 @@ app.put("/publisher/:id", (req, res) => {
   })
 });
 
-app.delete("/publisher/:id", (req, res) => {
+app.delete("/publisher/:id", [ checkToken, isAdmin ], (req, res) => {
   const { id } = req.params;  
 
   Publisher.findByIdAndRemove(

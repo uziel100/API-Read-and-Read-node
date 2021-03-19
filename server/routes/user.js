@@ -4,7 +4,7 @@ const app = express();
 const User = require("../models/User");
 const Encrytion = require("../clases/Encryption");
 const information = new Encrytion();
-const { checkToken } = require("../middlewares/autentication");
+const { checkToken, isUser  } = require("../middlewares/autentication");
 const { verifyValidFields } = require("../middlewares/validation");
 const { body, param } = require("express-validator");
 const Regex = require("../clases/Validation");
@@ -28,9 +28,12 @@ app.get("/user", (req, res) => {
 
 app.get(
   "/user/:id",
-  checkToken,
-  param("id").matches(regex.isValidObjectId()),
-  verifyValidFields,
+  [
+   checkToken,
+   isUser, 
+   param("id").matches(regex.isValidObjectId()),
+   verifyValidFields,
+  ],
   (req, res) => {
     const id = req.params.id;
 
@@ -66,7 +69,8 @@ app.get(
 app.put(
   "/user/avatar/:id",
   [
-    checkToken  
+    checkToken,
+    isUser 
   ],
   (req, res) => {
     const id = req.params.id;
@@ -93,6 +97,7 @@ app.put(
   "/user/:id",
   [
     checkToken,
+    isUser,
     body("name").trim().matches(regex.isOnlyLetters()),
     body("lastName").trim().matches(regex.isOnlyLetters()),
     body("phone").trim().isLength({ min: 10, max: 10 }).isNumeric(),
@@ -129,7 +134,7 @@ app.put(
   }
 );
 
-app.put("/user/question/answer", [checkToken] ,(req, res) => {
+app.put("/user/question/answer", [checkToken, isUser ] ,(req, res) => {
   const { question, answer } = req.body;
   const { _id } = req.user;
   console.log(question, answer);

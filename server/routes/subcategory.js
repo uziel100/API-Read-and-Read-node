@@ -65,7 +65,7 @@ app.get("/subcategory/:name", (req, res) => {
     });
 });
 
-app.post("/subcategory", (req, res) => {
+app.post("/subcategory", [ checkToken, isAdmin ], (req, res) => {
   const { name, niceName, category } = req.body;
 
   const newSubcategory = new Subcategory({ name, niceName, category });
@@ -85,7 +85,7 @@ app.post("/subcategory", (req, res) => {
   });
 });
 
-app.put("/subcategory/:id", (req, res) => {
+app.put("/subcategory/:id", [ checkToken, isAdmin ], (req, res) => {
   const idSubcategory = req.params.id;
 
   const body = _.pick(req.body, ["name", "niceName", "category"]);
@@ -110,7 +110,7 @@ app.put("/subcategory/:id", (req, res) => {
   );
 });
 
-app.delete("/subcategory/:id", (req, res) => {
+app.delete("/subcategory/:id", [ checkToken, isAdmin ], (req, res) => {
   const idSubcategory = req.params.id;
 
   Subcategory.findByIdAndRemove(

@@ -185,8 +185,8 @@ const removeDuplicateAuthor = (authors) => {
 
   return listAuthors;
 };
-// [checkToken, isAdmin]
-app.post("/book",  (req, res) => {
+
+app.post("/book", [ checkToken, isAdmin ] ,  (req, res) => {
   const booKData = _.pick(req.body, [
     "ISBN",
     "title",
@@ -218,8 +218,8 @@ app.post("/book",  (req, res) => {
     });
   });
 });
-// [checkToken, isAdmin]
-app.put("/book/file/:id",  (req, res) => {
+
+app.put("/book/file/:id", [ checkToken, isAdmin ],  (req, res) => {
   const { id  } = req.params;
   const bookData = _.pick(req.body, [
     "imgUrl",
@@ -245,7 +245,7 @@ app.put("/book/file/:id",  (req, res) => {
   });
 });
 
-app.put("/book/:id",  (req, res) => {
+app.put("/book/:id", [ checkToken, isAdmin ] ,  (req, res) => {
   const { id  } = req.params;
   const booKData = _.pick(req.body, [
     "ISBN",

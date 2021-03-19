@@ -81,7 +81,7 @@ app.get("/category/:id", (req, res) => {
   });
 });
 
-app.post("/category", (req, res) => {
+app.post("/category", [ checkToken, isAdmin ] , (req, res) => {
   const { name, niceName } = req.body;
 
   const newCategory = new Category({ name, niceName });
@@ -101,7 +101,7 @@ app.post("/category", (req, res) => {
   });
 });
 
-app.put("/category/:id", (req, res) => {
+app.put("/category/:id", [ checkToken, isAdmin ] , (req, res) => {
   const idcategory = req.params.id;
 
   const body = _.pick(req.body, ["name", "niceName", "img"]);
@@ -109,7 +109,7 @@ app.put("/category/:id", (req, res) => {
   Category.findByIdAndUpdate(
     idcategory,
     body,    
-    (err, category) => {
+    (err) => {
       if (err) {
         return res.status(500).json({
           status: false,
@@ -126,7 +126,7 @@ app.put("/category/:id", (req, res) => {
   );
 });
 
-app.delete("/category/:id", (req, res) => {
+app.delete("/category/:id", [ checkToken, isAdmin ] , (req, res) => {
   const idcategory = req.params.id;
 	
   Category.findByIdAndRemove(
