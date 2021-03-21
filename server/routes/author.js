@@ -4,7 +4,7 @@ const app = express();
 
 const Author = require("../models/Author");
 
-app.get('/author', [ checkToken, isAdmin ] ,(req, res) => {
+app.get('/author',(req, res) => {
     Author.find({}, "name about _id")
 	.sort({ _id: -1 })
 	.exec((err, authors) => {
