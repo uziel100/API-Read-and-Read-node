@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const generator = require("generate-password");
 const { transporter } = require("../config/mailer");
-const { checkToken } = require("../middlewares/autentication");
+const { checkToken, isUser  } = require("../middlewares/autentication");
 const { OAuth2Client } = require("google-auth-library");
 const Encrytion = require("../clases/Encryption");
 const information = new Encrytion();
@@ -398,6 +398,51 @@ app.post("/restorePassword", checkToken, (req, res) => {
         });
       }
     );
+  });
+});
+
+app.put("/changepassword/:id", [checkToken, isUser ], (req, res) => {
+  const id = req.params.id;
+  const { oldPassword, newPassword } = req.body;
+
+  User.findById(id, (err, userFind) => {
+      if (err) {
+          return res.status(500).json({
+              status: false,
+              error: "Ha ocurrido un error en el servidor",
+          });
+      }
+
+      if (!userFind) {
+          return res.status(404).json({
+              status: false,
+              message: "El usuario no existe",
+          });
+      }
+
+      if (!bcrypt.compareSync(oldPassword, userFind.password)) {
+          return res.status(400).json({
+              status: false,
+              message: "La contraseña anterior es incorrecta",
+          });
+      } else {
+          const hashPassword = bcrypt.hashSync(newPassword, 10);
+          User.findByIdAndUpdate(id, { password: hashPassword },
+              (err, userDb) => {
+                  if (err) {
+                      return res.status(500).json({
+                          status: false,
+                          message: err,
+                      });
+                  }
+
+                  res.send({
+                      status: true,
+                      message: "Contraseña actualizada",
+                  });
+              }
+          );
+      }
   });
 });
 

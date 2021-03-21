@@ -159,7 +159,7 @@ app.put("/user/question/answer", [checkToken, isUser ] ,(req, res) => {
       user._id,
       { questionSecret: { question, answer } },
       { new: true, runValidators: true },
-      (err, userDb) => {
+      (err) => {
         if (err) {
           return res.status(500).json({
             status: false,
@@ -170,7 +170,7 @@ app.put("/user/question/answer", [checkToken, isUser ] ,(req, res) => {
 
         res.json({
           status: true,
-          userDb,
+     	  message: 'Pregunta actualizada :)'
         });
       }
     );

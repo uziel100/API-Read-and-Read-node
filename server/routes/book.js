@@ -19,7 +19,7 @@ app.get("/book", (req, res) => {
   Book.find()
     .populate("category", "name niceName")
     .populate("subCategory", "name niceName")
-    .populate("languaje", "name")
+    .populate("lang", "name")
     .populate({
       path: "author",
       populate: { path: "author" },
