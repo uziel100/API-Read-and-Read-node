@@ -245,7 +245,7 @@ app.put("/book/file/:id", [ checkToken, isAdmin ],  (req, res) => {
   });
 });
 
-app.put("/book/:id", [ checkToken, isAdmin ] ,  (req, res) => {
+app.put("/book/:id", [ checkToken ] ,  (req, res) => {
   const { id  } = req.params;
   const booKData = _.pick(req.body, [
     "ISBN",
