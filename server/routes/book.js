@@ -7,10 +7,10 @@ const Book = require("../models/Book");
 const Comment = require("../models/Comment");
 
 app.get("/test", (req, res) => {
-  const params = req.query.author;
+
   res.json({
     status:true,
-    params
+    hola: 'test',    
   })
 });
 

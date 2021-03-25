@@ -17,6 +17,10 @@ const { body } = require("express-validator");
 const Regex = require("../clases/Validation");
 const regex = new Regex();
 
+// logging
+const Log = require('../clases/Logging');
+const logger = new Log();
+
 app.post(
   "/login",
   body("email").isEmail(),
@@ -24,6 +28,11 @@ app.post(
   verifyValidFields,
   (req, res) => {
     const { email, password } = req.body;
+    let log = {
+      description: 'Error de inicio de sesión, credenciales no válidas',
+      ip: req.ip,
+      user: email,
+    }
 
     User.findOne({ email }).exec((err, userDb) => {
       if (err) {
@@ -34,17 +43,24 @@ app.post(
       }
 
       if (!userDb) {
-        return res.status(400).json({
-          status: false,
-          message: "Usuario o contraseña incorrecto",
-        });
+        
+        logger.error(log, () => {
+          return res.status(400).json({
+            status: false,
+            message: "Usuario o contraseña incorrecto",
+          });
+        })
+        return;
       }
 
       if (!bcrypt.compareSync(password, userDb.password)) {
-        return res.status(400).json({
-          status: false,
-          message: "Usuario o contraseña incorrecto",
-        });
+        logger.error(log, () => {
+          return res.status(400).json({
+            status: false,
+            message: "Usuario o contraseña incorrecto",
+          });
+        })
+        return;
       }
 
       // Generate code
@@ -100,6 +116,11 @@ app.post(
   body("code").notEmpty(),
   (req, res) => {
     const { email, code } = req.body;
+    let log = {
+      description: 'Error de codigo de acceso',
+      ip: req.ip,
+      user: email,
+    }
 
     User.findOne({ email }).exec((err, userDb) => {
       if (err) {
@@ -109,11 +130,11 @@ app.post(
         });
       }
 
-      if (!userDb) {
-        return res.status(400).json({
-          status: false,
-          message: "Email inválido",
-        });
+      if (!userDb) {        
+          return res.status(400).json({
+            status: false,
+            message: "Email inválido",
+          });              
       }
 
       Code.findOne({ code }).exec((err, codDb) => {
@@ -125,10 +146,13 @@ app.post(
         }
 
         if (!codDb) {
-          return res.status(404).json({
-            status: false,
-            message: "El código no es válido",
-          });
+          logger.error(log, () => {
+            return res.status(404).json({
+              status: false,
+              message: "El código no es válido",
+            });
+          })
+          return;
         }
 
         // Delete code fron database
@@ -151,12 +175,18 @@ app.post(
           );
 
           const { _id, email, photo, name, lastName, role } = userDb;
-
-          res.json({
-            status: true,
-            user: { _id, email, photo, name, lastName, role },
-            token,
-          });
+          logger.info({
+            description: 'Inicio de sesión como: ' + role,
+            ip: req.ip,
+            user: email
+          },
+          () => {
+            res.json({
+              status: true,
+              user: { _id, email, photo, name, lastName, role },
+              token,
+            });
+          })
         });
       });
     });
@@ -214,12 +244,19 @@ app.post("/google", async (req, res) => {
           process.env.SEED,
           { expiresIn: process.env.EXPIRATION_TOKEN }
         );
-
-        return res.json({
-          status: true,
-          user: userDb,
-          token,
-        });
+        logger.info({ 
+          description: 'Inicio de sesión con google como: ' + userDb.role,
+          ip: req.ip,
+          user: userDb.email
+        }, 
+        () => {
+          return res.json({
+            status: true,
+            user: userDb,
+            token,
+          });
+        })
+        return;
       }
     } else {
       // si el usuario no existe en la base de datos
@@ -247,12 +284,18 @@ app.post("/google", async (req, res) => {
           process.env.SEED,
           { expiresIn: process.env.EXPIRATION_TOKEN }
         );
-
-        return res.json({
-          status: true,
-          user: userDb,
-          token,
-        });
+        logger.info({ 
+          description: 'Registro de usuario con google',
+          ip: req.ip,
+          user: userDb.email
+        }, 
+        () => {
+          res.json({
+            status: true,
+            user: userDb,
+            token,
+          });
+        })
       });
     }
   });
@@ -280,11 +323,17 @@ app.post(
         });
       }
 
-      res.json({
-        status: true,
-        message: "Usuario registrado correctamente",
-        user: userDb,
-      });
+      logger.info({ 
+          description: 'Registro de usuario',
+          ip: req.ip,
+          user: email
+        }, 
+        () => {
+        res.json({
+          status: true,
+          message: "Usuario registrado correctamente",          
+        });
+      })
     });
   }
 );
@@ -392,10 +441,18 @@ app.post("/restorePassword", checkToken, (req, res) => {
           });
         }
 
-        res.json({
-          status: true,
-          message: "Contraseña actualizada",
-        });
+        logger.info({ 
+          description: 'Restauración de contraseña normal',
+          ip: req.ip,
+          user: email
+        }, 
+        () => {
+          res.json({
+            status: true,
+            message: "Contraseña actualizada",
+          });
+        })
+
       }
     );
   });
@@ -421,10 +478,19 @@ app.put("/changepassword/:id", [checkToken, isUser ], (req, res) => {
       }
 
       if (!bcrypt.compareSync(oldPassword, userFind.password)) {
-          return res.status(400).json({
-              status: false,
-              message: "La contraseña anterior es incorrecta",
-          });
+        logger.warn(
+          {
+            description: "Contraseña actual no válida",
+            ip: req.ip,
+            user: userFind.email,
+          },
+          () => {
+            return res.status(400).json({
+                status: false,
+                message: "La contraseña anterior es incorrecta",
+            });
+          })
+          return;
       } else {
           const hashPassword = bcrypt.hashSync(newPassword, 10);
           User.findByIdAndUpdate(id, { password: hashPassword },
@@ -436,10 +502,17 @@ app.put("/changepassword/:id", [checkToken, isUser ], (req, res) => {
                       });
                   }
 
-                  res.send({
-                      status: true,
-                      message: "Contraseña actualizada",
-                  });
+                  logger.info({ 
+                    description: 'Actualización de contraseña',
+                    ip: req.ip,
+                    user: userDb.email
+                  }, 
+                  () => {
+                    res.send({
+                        status: true,
+                        message: "Contraseña actualizada",
+                    });
+                  })
               }
           );
       }
@@ -465,19 +538,20 @@ app.post("/restorePasswordWithQuestionSecret", (req, res) => {
     }
 
     if (user.signWithGoogle) {
-    return res.status(400).json({
+      return res.status(400).json({
         status: false,
         message: "Por favor inicia sesión con google",
       });
     }
 
-    // user exist
-    if (!(user.hasOwnProperty("questionSecret") || user.questionSecret.hasOwnProperty("question"))) {
+    // user exist    
+
+    if (!( user["questionSecret"] && user.questionSecret["question"] )) {
       return res.status(400).json({
         status: false,
         message: "No has registrado una pregunta, utiliza otro método",
       });
-    }    
+    }
 
     // there's question
     // verify if correct question
@@ -500,12 +574,19 @@ app.post("/restorePasswordWithQuestionSecret", (req, res) => {
             message: "Error en el servidor",
           });
         }
-
-        res.json({
-          status: true,
-          message: "Contraseña restablecida :)",
-          password,
-        });
+        
+        logger.info({ 
+          description: 'Restauración de contraseña por pregunta secreta',
+          ip: req.ip,
+          user: email
+        }, 
+        () => {
+          res.json({
+            status: true,
+            message: "Contraseña restablecida :)",
+            password,
+          });
+        })
       });
     } else {
       return res.status(400).json({

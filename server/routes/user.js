@@ -4,13 +4,17 @@ const app = express();
 const User = require("../models/User");
 const Encrytion = require("../clases/Encryption");
 const information = new Encrytion();
-const { checkToken, isUser  } = require("../middlewares/autentication");
+const { checkToken, isUser, isAdmin } = require("../middlewares/autentication");
 const { verifyValidFields } = require("../middlewares/validation");
 const { body, param } = require("express-validator");
 const Regex = require("../clases/Validation");
 const regex = new Regex();
 
-app.get("/user", (req, res) => {
+// logging
+const Log = require("../clases/Logging");
+const logger = new Log();
+
+app.get("/user", [checkToken, isAdmin], (req, res) => {
   User.find((err, users) => {
     if (err) {
       return res.status(400).json({
@@ -29,10 +33,10 @@ app.get("/user", (req, res) => {
 app.get(
   "/user/:id",
   [
-   checkToken,
-   isUser, 
-   param("id").matches(regex.isValidObjectId()),
-   verifyValidFields,
+    checkToken,
+    isUser,
+    param("id").matches(regex.isValidObjectId()),
+    verifyValidFields,
   ],
   (req, res) => {
     const id = req.params.id;
@@ -43,7 +47,7 @@ app.get(
           status: false,
           message: "Usuario no encontrado",
         });
-      } 
+      }
 
       userDb.name = userDb.name ? information.decrypt(userDb.name) : "";
       userDb.address = userDb.address
@@ -66,32 +70,24 @@ app.get(
   }
 );
 
-app.put(
-  "/user/avatar/:id",
-  [
-    checkToken,
-    isUser 
-  ],
-  (req, res) => {
-    const id = req.params.id;
-    const { photo } = req.body;
+app.put("/user/avatar/:id", [checkToken, isUser], (req, res) => {
+  const id = req.params.id;
+  const { photo } = req.body;
 
-
-    User.findByIdAndUpdate(id, { photo }, (err, userDb) => {
-      if (err) {
-        return res.status(500).json({
-          status: false,
-          message: err,
-        });
-      }
-
-      res.send({
-        status: true,
-        message: "Foto de perfil actualizado :)",
+  User.findByIdAndUpdate(id, { photo }, (err, userDb) => {
+    if (err) {
+      return res.status(500).json({
+        status: false,
+        message: err,
       });
+    }
+
+    res.send({
+      status: true,
+      message: "Foto de perfil actualizado :)",
     });
-  }
-);
+  });
+});
 
 app.put(
   "/user/:id",
@@ -126,18 +122,26 @@ app.put(
         });
       }
 
-      res.send({
-        status: true,
-        message: "Datos actualizados :)",
-      });
+      logger.info(
+        {
+          description: "Información actualizada",
+          ip: req.ip,
+          user: userDb.email,
+        },
+        () => {
+          res.send({
+            status: true,
+            message: "Datos actualizados :)",
+          });
+        }
+      );
     });
   }
 );
 
-app.put("/user/question/answer", [checkToken, isUser ] ,(req, res) => {
+app.put("/user/question/answer", [checkToken, isUser], (req, res) => {
   const { question, answer } = req.body;
   const { _id } = req.user;
-  console.log(question, answer);
 
   User.findOne({ _id }, (err, user) => {
     if (err) {
@@ -154,12 +158,12 @@ app.put("/user/question/answer", [checkToken, isUser ] ,(req, res) => {
       });
     }
 
-    // user exist    
+    // user exist
     User.findByIdAndUpdate(
       user._id,
       { questionSecret: { question, answer } },
       { new: true, runValidators: true },
-      (err) => {
+      (err, userDb) => {
         if (err) {
           return res.status(500).json({
             status: false,
@@ -168,10 +172,19 @@ app.put("/user/question/answer", [checkToken, isUser ] ,(req, res) => {
           });
         }
 
-        res.json({
-          status: true,
-     	  message: 'Pregunta actualizada :)'
-        });
+        logger.info(
+          {
+            description: "Pregunta secreta actualizada",
+            ip: req.ip,
+            user: userDb.email,
+          },
+          () => {
+            res.json({
+              status: true,
+              message: "Pregunta actualizada :)",
+            });
+          }
+        );
       }
     );
   });
