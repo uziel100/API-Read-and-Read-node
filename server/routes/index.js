@@ -16,6 +16,7 @@ app.use( require('./sms') );
 app.use( require('./question') );
 app.use( require('./comment') );
 app.use( require('./wishlist') );
+app.use( require('./logging') );
 
 
 module.exports = app;
