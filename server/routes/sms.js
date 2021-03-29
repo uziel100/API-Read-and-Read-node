@@ -7,6 +7,9 @@ const User = require("../models/User");
 const generator = require("generate-password");
 const app = express();
 
+const Encrytion = require("../clases/Encryption");
+const information = new Encrytion();
+
 // logging
 const Log = require("../clases/Logging");
 const logger = new Log();
@@ -19,8 +22,8 @@ app.post(
   verifyValidFields,
   (req, res) => {
     const { email, phoneNumber } = req.body;    
-
-    User.findOne({ email }, "_id email signWithGoogle").exec(
+    
+    User.findOne({ email }, "_id email signWithGoogle phone").exec(
       (err, userFounded) => {
         if (err) {
           return res.status(500).json({
@@ -41,6 +44,22 @@ app.post(
             status: false,
             message: "Por favor inicia sesión con google",
           });
+        }
+
+        if(!userFounded['phone']){
+          return res.status(400).json({
+            status: false,
+            message: "No tienes un telefono vinculado a tu cuenta, utiliza otro método",
+          });
+        }
+        
+        const decriptPhone = information.decrypt(userFounded['phone'])
+        
+        if( phoneNumber != "52" + decriptPhone){
+          return res.status(400).json({
+            status: false,
+            message: "El número de teléfono es incorrecto",
+          }); 
         }
 
         // Send message
