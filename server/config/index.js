@@ -57,5 +57,6 @@ process.env.URL_SITE = link
 // CLIENT ID GOOGLE
 // ========================
 process.env.CLIENT_ID = process.env.CLIENT_ID || '451024139586-ngq240pmq03op37iro4o8d73o64g641f.apps.googleusercontent.com'
+process.env.CLIENT_ID_MOVIL = process.env.CLIENT_ID_MOVIL || '451024139586-l4vjvorebt4i0qal3grp44fsscpt627b.apps.googleusercontent.com'
 
 

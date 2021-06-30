@@ -17,6 +17,7 @@ app.use( require('./question') );
 app.use( require('./comment') );
 app.use( require('./wishlist') );
 app.use( require('./logging') );
+app.use( require('./payment') );
 
 
 module.exports = app;
