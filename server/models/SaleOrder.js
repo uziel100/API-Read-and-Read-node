@@ -29,6 +29,10 @@ let saleOrderSchema = new Schema({
         type: String,
         required: [true, "El código postal es obligatorio"]      
     },
+    nameCard:{
+        type: String,
+        required: [true, "El nombre de la tarjeta es obligatorio"]      
+    },
     country:{
         type: String,
         required: [true, "El país es obligatorio"]      

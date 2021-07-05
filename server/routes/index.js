@@ -18,6 +18,7 @@ app.use( require('./comment') );
 app.use( require('./wishlist') );
 app.use( require('./logging') );
 app.use( require('./payment') );
+app.use( require('./userBooks') );
 
 
 module.exports = app;
