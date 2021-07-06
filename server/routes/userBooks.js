@@ -6,6 +6,7 @@ const UserBook = require('../models/UserBook')
 const app = express();
 app.get("/user/book/:idBook",  (req, res) => {
     const id = req.params?.idBook;
+    
     UserBook.find({ book: id })
     .populate("book", "_id imgUrl title fileName")
     .exec((err, book) => {
@@ -36,22 +37,46 @@ app.get("/user/book/:idBook",  (req, res) => {
 
 app.get("/user/:id/book", (req, res) => {
     const id = req.params?.id;
-    UserBook.find({ user: id }, '_id imgUrl title fileName')
-    .populate("book", "_id imgUrl title fileName createdAt")
-    .exec((err, books) => {
-      if (err) {
-        return res.status(500).json({
-          status: false,
-          message: 'Ha ocurrido un error en el servidor',
-        });
-      }
+    const limit = Number(req.query.limit);
 
-      res.json({
-        status: true,
-        books
-      })
-    });
+    if(limit){
+      UserBook.find({ user: id }, '_id createdAt')
+      .populate("book", "_id imgUrl title fileName")
+      .sort({ createdAt: -1 })
+      .limit(limit)      
+      .exec((err, books) => {
+        if (err) {
+          return res.status(500).json({
+            status: false,
+            message: 'Ha ocurrido un error en el servidor',
+          });
+        }
+  
+        res.json({
+          status: true,
+          books
+        })
+      });
+    }else{
+      UserBook.find({ user: id }, '_id createdAt')
+      .populate("book", "_id imgUrl title fileName createdAt")      
+      .sort({ createdAt: -1 })
+      .exec((err, books) => {
+        if (err) {
+          return res.status(500).json({
+            status: false,
+            message: 'Ha ocurrido un error en el servidor',
+          });
+        }
+  
+        res.json({
+          status: true,
+          books
+        })
+      });
+    }
 });
+
 
 
 module.exports = app;
