@@ -151,8 +151,7 @@ app.post(
             }
 
             // generate token
-            const { _id, email, role, signWithGoogle } = userDb;
-
+            const { _id, email, role, signWithGoogle, name } = userDb;
             let token = jwt.sign(
                 {
                     user: { _id, email, signWithGoogle },
@@ -173,7 +172,8 @@ app.post(
                         status: true,
                         user: {
                             _id,
-                            email                             
+                            email,
+                            name                          
                         },
                         token,
                     });

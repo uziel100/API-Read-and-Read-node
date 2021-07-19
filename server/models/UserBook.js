@@ -16,7 +16,7 @@ let userBookSchema = Schema(
         },
         currentPage: {
             type: Number,
-            default: 0
+            default: 1
         },
         favorite:{
             type: Boolean,

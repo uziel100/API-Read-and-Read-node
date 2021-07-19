@@ -4,10 +4,10 @@ const { checkToken, isUser } = require("../middlewares/autentication");
 const UserBook = require("../models/UserBook");
 
 const app = express();
-app.get("/user/book/:idBook", (req, res) => {
-    const id = req.params?.idBook;
+app.get("/user/:idUser/book/:idBook", (req, res) => {
+    const { idBook, idUser } = req.params;
 
-    UserBook.find({ book: id })
+    UserBook.findOne({ book: idBook, user: idUser })
         .populate("book", "_id imgUrl title fileName")
         .exec((err, book) => {
             if (err) {
@@ -17,7 +17,35 @@ app.get("/user/book/:idBook", (req, res) => {
                 });
             }
 
-            if (!book.length) {
+            if (!book) {
+                return res.json({
+                    status: false,
+                    hasBook: false,
+                    message: "No tienes este libro",
+                });
+            }            
+
+            res.json({
+                status: true,
+                hasBook: true,                
+            });
+        });
+});
+
+app.get("/user/book/:id", (req, res) => {
+    const { id } = req.params;
+
+    UserBook.findById( id )
+        .populate("book", "_id imgUrl title fileName")
+        .exec((err, book) => {
+            if (err) {
+                return res.status(500).json({
+                    status: false,
+                    message: "Ha ocurrido un error en el servidor",
+                });
+            }
+
+            if (!book) {
                 return res.json({
                     status: false,
                     hasBook: false,
@@ -25,17 +53,31 @@ app.get("/user/book/:idBook", (req, res) => {
                 });
             }
 
-            console.log(book);
-
             res.json({
-                status: true,
-                hasBook: true,
+                status: true,                
                 book,
             });
         });
 });
 
-app.get("/user/:id/book", [checkToken, isUser] , (req, res) => {
+app.put('/user/book/:id', async (req, res) => {
+    const { id } = req.params;
+    const { currentPage } = req.body;
+    try {
+        await UserBook.findByIdAndUpdate( id, { currentPage } );
+        res.json({
+            status: true,
+            message: 'Pagina actualizada'
+        })
+    } catch (error) {
+        res.json({
+            status: false,
+            message: 'Ha ocurrido un error'
+        })
+    }
+})
+
+app.get("/user/:id/book", [checkToken, isUser] ,(req, res) => {
     const id = req.params?.id;
     const limit = Number(req.query.limit);
 
@@ -77,20 +119,18 @@ app.get("/user/:id/book", [checkToken, isUser] , (req, res) => {
     }
 });
 
-app.put("/user/book/favorite", [checkToken, isUser] , async (req, res) => {
+app.put("/user-book/favorite", [checkToken, isUser] , async (req, res) => {
     const { id, isFavorite } = req.body;
 
     try {
         const book = await UserBook.findByIdAndUpdate(id, {
             favorite: isFavorite,
         });
-        console.log(book);
         res.json({
             status: true,
             message: "Libro actualizado",
         });
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             status: false,
             message: "Ha ocurrido un error",
@@ -99,8 +139,9 @@ app.put("/user/book/favorite", [checkToken, isUser] , async (req, res) => {
     }
 });
 
-app.get("/user/:idUser/book/favorite", [checkToken, isUser] , async (req, res) => {
+app.get("/user-favorite/:idUser", [checkToken, isUser] , async (req, res) => {
     const { idUser } = req.params;
+    console.log('here')
     try {
         const books = await UserBook.find(
             { user: idUser, favorite: true },
@@ -114,6 +155,7 @@ app.get("/user/:idUser/book/favorite", [checkToken, isUser] , async (req, res) =
             status: true,
         });
     } catch (error) {
+        console.log(error)
       res.status(500).json({
         status: false,
         message: 'Ha ocurrido un error',

@@ -19,6 +19,7 @@ app.use( require('./wishlist') );
 app.use( require('./logging') );
 app.use( require('./payment') );
 app.use( require('./userBooks') );
+app.use( require('./bookRequest') );
 
 
 module.exports = app;
