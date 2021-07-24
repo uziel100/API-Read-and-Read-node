@@ -247,7 +247,7 @@ app.post(
                         { expiresIn: process.env.EXPIRATION_TOKEN }
                     );
 
-                    const { _id, email, photo, name, lastName, role } = userDb;
+                    const { _id, email, photo, name, lastName, role, username } = userDb;
                     logger.info(
                         {
                             description: "Inicio de sesión como: " + role,
@@ -264,6 +264,7 @@ app.post(
                                     name,
                                     lastName,
                                     role,
+                                    username
                                 },
                                 token,
                             });
@@ -305,7 +306,7 @@ app.post("/google", async (req, res) => {
 
     User.findOne(
         { email: googleUser.email },
-        "email name photo role signWithGoogle _id"
+        "email name photo role signWithGoogle _id username"
     ).exec((err, userDb) => {
         if (err) {
             return res.status(500).json({
@@ -449,21 +450,23 @@ app.post(
     "/register",
     body("email").isEmail(),
     body("password").matches(regex.isStrongPassword()),
+    body("username").trim().matches(regex.isUserName()),
     verifyValidFields,
     (req, res) => {
-        const { email, password } = req.body;
+        const { email, password, username } = req.body;
 
         // Create new User
         const newUser = new User({
             email,
             password: bcrypt.hashSync(password, 10),
+            username
         });
 
         newUser.save((err, userDb) => {
-            if (err) {
+            if (err) {         
                 return res.status(500).json({
                     status: false,
-                    message: "El email ya ha sido registrado por otro usuario",
+                    message: err.errors                    
                 });
             }
 

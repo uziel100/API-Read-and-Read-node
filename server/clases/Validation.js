@@ -7,6 +7,10 @@ module.exports = class Regex{
         return /^[!¡?¿,.A-ZÀ-ÿa-z0-9\s\u00f1\u00d1]+$/;
     }
 
+    isUserName(){
+        return /^[.A-ZÀ-ÿa-z0-9]+$/;
+    }
+
     isStrongPassword(){
        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&,.-_;(){}¡<>])([A-Za-z\d$@$!%*?&,.-_;(){}¡<>]|[^ ]){8,15}$/ 
     }

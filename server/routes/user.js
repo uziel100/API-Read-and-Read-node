@@ -95,6 +95,69 @@ app.put("/user/avatar/:id", [checkToken, isUser], (req, res) => {
     });
 });
 
+app.get(
+    "/user/username/:id",
+    [
+        checkToken,
+        isUser,        
+        verifyValidFields,
+    ],
+    (req, res) => {
+        const id = req.params.id;
+
+        User.findById(id, (err, userDb) => {
+            if (err) {
+                return res.status(404).json({
+                    status: false,
+                    message: "Usuario no encontrado",
+                });
+            }
+
+            const { username }  = userDb;
+
+            res.json({
+                status: true,
+                username,
+            });
+        });
+    }
+);
+
+app.put(
+    "/user/username/:id",
+    [
+        checkToken,
+        isUser,
+        body("username").trim().matches(regex.isUserName()),
+        verifyValidFields,
+    ],
+    async (req, res) => {
+        const id = req.params.id;
+        const { username } = req.body;
+        try {
+            const isUsername = await User.findOne({ username });    
+            if(!isUsername){
+                await User.findByIdAndUpdate(id, { username });                
+                res.json({
+                    status: true,
+                    message: 'Datos actualizados :)'
+                })
+            }else{                
+                res.status(400).json({
+                    status: false,
+                    message: 'Ya esta registrado este nombre de usuario'
+                })
+            }
+        } catch (error) {
+            res.status(500).json({
+                status: false,
+                message: 'Ha ocurrido un error'
+            })
+        }                            
+    }
+);
+
+
 app.put(
     "/user/:id",
     [

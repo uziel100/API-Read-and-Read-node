@@ -9,6 +9,11 @@ const rolesValids = {
 };
 
 let userSchema = new Schema({
+  username: {
+    type: String,
+    required: false,
+    unique: true,
+  },
   name: {
     type: String,
     required: false,
