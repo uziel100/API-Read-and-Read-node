@@ -3,6 +3,7 @@ const Stripe = require("stripe");
 const SaleOrder = require("../models/SaleOrder");
 const UserBook = require("../models/UserBook");
 const Book = require("../models/Book");
+const Wishlist = require("../models/Wishlist");
 const { checkToken } = require("../middlewares/autentication");
 
 const stripe = Stripe(
@@ -55,9 +56,23 @@ app.post("/payment", checkToken, async (req, res) => {
             await newUserBook.save();
         }
 
+        // delete books if you have in wishlist
+        
+        const wishlist = await Wishlist.find({ userId:  user });
+        const arrayProducts = products.map( book => book._id );
+
+        for(const item of wishlist){    
+            const idBook = item.bookId.toString();
+            const id = item._id.toString();
+
+            if( arrayProducts.includes( idBook )){
+                await Wishlist.findByIdAndUpdate(id, { status: false })                
+            }
+        }
+
         res.json({
             status: true,
-            message: '¡El pago se realizo correctamente!'
+            message: '¡El pago se realizo correctamente!',                    
         });
 
     } catch (error) {

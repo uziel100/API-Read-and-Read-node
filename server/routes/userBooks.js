@@ -141,7 +141,7 @@ app.put("/user-book/favorite", [checkToken, isUser] , async (req, res) => {
 
 app.get("/user-favorite/:idUser", [checkToken, isUser] , async (req, res) => {
     const { idUser } = req.params;
-    console.log('here')
+    
     try {
         const books = await UserBook.find(
             { user: idUser, favorite: true },
@@ -155,7 +155,6 @@ app.get("/user-favorite/:idUser", [checkToken, isUser] , async (req, res) => {
             status: true,
         });
     } catch (error) {
-        console.log(error)
       res.status(500).json({
         status: false,
         message: 'Ha ocurrido un error',

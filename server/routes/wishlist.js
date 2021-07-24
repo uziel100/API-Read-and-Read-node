@@ -5,7 +5,7 @@ const Wishlist = require("../models/Wishlist");
 app.get("/wishlist/user/:id", (req, res) => {
   const { id } = req.params;
 
-  Wishlist.find({ userId: id }, { _id:0, userId: 0 })
+  Wishlist.find({ userId: id, status: true }, { _id:0, userId: 0 })
     .populate("bookId", "title _id imgUrl price")
     .sort({ _id: -1 })
     .exec((err, list) => {

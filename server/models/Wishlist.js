@@ -13,6 +13,11 @@ let wishlistSchema = new Schema({
         type: Schema.Types.ObjectId,
         required: [true, "La libro es obligatorio"]
     },
+    status: {
+        type: Boolean,
+        required: false,
+        default: true
+    }
 },
 {
     timestamps: true,
