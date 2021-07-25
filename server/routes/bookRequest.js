@@ -30,9 +30,13 @@ app.post('/book-request', checkToken ,async (req, res ) => {
     }
 })
 
-app.get('/book-request', async (req, res ) => {    
+app.get('/book-request', checkToken,  async (req, res ) => {    
     try {
-        const data = await BookRequest.find();        
+        const data = await BookRequest.find()
+                            .sort({ createdAt: -1 })
+                            .populate("user", 'email')
+                            .exec()
+                        
 
         res.json({
             status: true,  
