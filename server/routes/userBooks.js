@@ -23,11 +23,11 @@ app.get("/user/:idUser/book/:idBook", (req, res) => {
                     hasBook: false,
                     message: "No tienes este libro",
                 });
-            }            
+            }
 
             res.json({
                 status: true,
-                hasBook: true,                
+                hasBook: true,
             });
         });
 });
@@ -35,7 +35,7 @@ app.get("/user/:idUser/book/:idBook", (req, res) => {
 app.get("/user/book/:id", (req, res) => {
     const { id } = req.params;
 
-    UserBook.findById( id )
+    UserBook.findById(id)
         .populate("book", "_id imgUrl title fileName")
         .exec((err, book) => {
             if (err) {
@@ -54,30 +54,30 @@ app.get("/user/book/:id", (req, res) => {
             }
 
             res.json({
-                status: true,                
+                status: true,
                 book,
             });
         });
 });
 
-app.put('/user/book/:id', async (req, res) => {
+app.put("/user/book/:id", async (req, res) => {
     const { id } = req.params;
     const { currentPage } = req.body;
     try {
-        await UserBook.findByIdAndUpdate( id, { currentPage } );
+        await UserBook.findByIdAndUpdate(id, { currentPage });
         res.json({
             status: true,
-            message: 'Pagina actualizada'
-        })
+            message: "Pagina actualizada",
+        });
     } catch (error) {
         res.json({
             status: false,
-            message: 'Ha ocurrido un error'
-        })
+            message: "Ha ocurrido un error",
+        });
     }
-})
+});
 
-app.get("/user/:id/book", [checkToken, isUser] ,(req, res) => {
+app.get("/user/:id/book", [checkToken, isUser], (req, res) => {
     const id = req.params?.id;
     const limit = Number(req.query.limit);
 
@@ -119,13 +119,47 @@ app.get("/user/:id/book", [checkToken, isUser] ,(req, res) => {
     }
 });
 
-app.put("/user-book/favorite", [checkToken, isUser] , async (req, res) => {
+app.get("/user-book/:id/recentlyViewed", [checkToken, isUser], (req, res) => {
+    const id = req.params?.id;
+    const limit = Number(req.query.limit) || 5;
+
+    UserBook.find({ user: id }, "_id createdAt updatedAt favorite")
+        .populate("book", "_id imgUrl title fileName")
+        .sort({ updatedAt: -1 })
+        .limit(limit)
+        .exec((err, books) => {
+            if (err) {
+                return res.status(500).json({
+                    status: false,
+                    message: "Ha ocurrido un error en el servidor",
+                });
+            }
+
+            let bookViewed = [];
+            for (const item of books) {
+                if (`${item.createdAt}` !== `${item.updatedAt}`) {
+                    bookViewed.push(item);
+                }
+            }
+
+            res.json({
+                status: true,
+                books: bookViewed.splice(0, limit),
+            });
+        });
+});
+
+app.put("/user-book/favorite", [checkToken, isUser], async (req, res) => {
     const { id, isFavorite } = req.body;
 
     try {
-        const book = await UserBook.findByIdAndUpdate(id, {
-            favorite: isFavorite,
-        });
+        const book = await UserBook.findByIdAndUpdate(
+            id,
+            {
+                favorite: isFavorite,
+            },
+            { timestamps: false }
+        );
         res.json({
             status: true,
             message: "Libro actualizado",
@@ -139,9 +173,9 @@ app.put("/user-book/favorite", [checkToken, isUser] , async (req, res) => {
     }
 });
 
-app.get("/user-favorite/:idUser", [checkToken, isUser] , async (req, res) => {
+app.get("/user-favorite/:idUser", [checkToken, isUser], async (req, res) => {
     const { idUser } = req.params;
-    
+
     try {
         const books = await UserBook.find(
             { user: idUser, favorite: true },
@@ -155,11 +189,42 @@ app.get("/user-favorite/:idUser", [checkToken, isUser] , async (req, res) => {
             status: true,
         });
     } catch (error) {
-      res.status(500).json({
-        status: false,
-        message: 'Ha ocurrido un error',
-        error
-      })
+        res.status(500).json({
+            status: false,
+            message: "Ha ocurrido un error",
+            error,
+        });
+    }
+});
+
+app.get("/search/user-book/:id", async (req, res) => {
+    const { id } = req.params;
+    const { query } = req.query;    
+    let regex = new RegExp(query, "i");
+
+    try {
+        const books = await UserBook.find(
+            { user: id },
+            "_id createdAt updatedAt favorite"
+        )
+            .populate({
+                path: "book",
+                match: { $or: [{ title: regex }, { summary: regex }] },
+                select: "_id imgUrl title fileName",
+            })
+            .exec();
+        
+        const filterBooks = books.filter( item => item.book )
+
+        res.json({
+            status: true,
+            books: filterBooks,
+        });
+    } catch (error) {        
+        res.status(500).json({
+            status: true,
+            message: "Ha ocurrido un error",
+        });
     }
 });
 

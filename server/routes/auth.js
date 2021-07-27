@@ -151,13 +151,13 @@ app.post(
             }
 
             // generate token
-            const { _id, email, role, signWithGoogle, name } = userDb;
+            const { _id, email, role, signWithGoogle, name, username } = userDb;
             let token = jwt.sign(
                 {
                     user: { _id, email, signWithGoogle },
                 },
                 process.env.SEED,
-                { expiresIn: process.env.EXPIRATION_TOKEN }
+                { expiresIn: "7d" }
             );
 
             
@@ -173,7 +173,8 @@ app.post(
                         user: {
                             _id,
                             email,
-                            name                          
+                            name,
+                            username                          
                         },
                         token,
                     });
@@ -402,7 +403,7 @@ app.post("/movil/google", async (req, res) => {
 
     User.findOne(
         { email: googleUser.email },
-        "email signWithGoogle _id"
+        "email signWithGoogle _id role username photo"
     ).exec((err, userDb) => {
         if (err) {
             return res.status(500).json({
