@@ -151,10 +151,10 @@ app.post(
             }
 
             // generate token
-            const { _id, email, role, signWithGoogle, name, username } = userDb;
+            const { _id, email, role, signWithGoogle,username, photo } = userDb;            
             let token = jwt.sign(
                 {
-                    user: { _id, email, signWithGoogle },
+                    user: { _id, email, signWithGoogle, role, username, photo },
                 },
                 process.env.SEED,
                 { expiresIn: "7d" }
@@ -172,9 +172,11 @@ app.post(
                         status: true,
                         user: {
                             _id,
-                            email,
-                            name,
-                            username                          
+                            email,                            
+                            username,
+                            signWithGoogle,
+                            role,   
+                            photo                
                         },
                         token,
                     });
