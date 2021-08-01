@@ -282,10 +282,12 @@ app.post(
 // SETTING GOOGLE
 
 async function verify(token, movil = false) {
+    console.log('token: ', token)
     const ticket = await client.verifyIdToken({
         idToken: token,
         audience: movil? process.env.CLIENT_ID_MOVIL : process.env.CLIENT_ID,
     });
+    console.log('ticket: ', ticket)
 
     const payload = ticket.getPayload();
 
@@ -395,8 +397,12 @@ app.post("/google", async (req, res) => {
 });
 
 app.post("/movil/google", async (req, res) => {
-    let token = req.body.idtoken;    
+    let token = req.body.idtoken;  
+    
+    console.log(req.body)    
+    console.log('token-1: ', token)
     let googleUser = await verify(token, true).catch((e) => {
+        console.log('error: ',e)
         return res.status(403).json({
             status: false,
             message: "Ha ocurrido un error con la autenticacioón con google",
