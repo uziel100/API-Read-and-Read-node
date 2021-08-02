@@ -1,5 +1,6 @@
 const express = require("express");
 const Stripe = require("stripe");
+const mongoose = require("mongoose");
 const SaleOrder = require("../models/SaleOrder");
 const UserBook = require("../models/UserBook");
 const Book = require("../models/Book");
@@ -13,7 +14,8 @@ const stripe = Stripe(
 const app = express();
 
 app.post("/payment", checkToken, async (req, res) => {
-    const { country, state, postalCode, products, nameCard, tokenStripe } = req.body;
+    const { country, state, postalCode, products, nameCard, tokenStripe } =
+        req.body;
     const { _id: user } = req.user;
     let totalPayment = 0;
     let productsTemp = [];
@@ -22,7 +24,7 @@ app.post("/payment", checkToken, async (req, res) => {
         for (const product of products) {
             const data = await Book.findById(product._id);
             totalPayment += data.price;
-            productsTemp.push( data );
+            productsTemp.push(data);
         }
 
         const charge = await stripe.charges.create({
@@ -32,7 +34,7 @@ app.post("/payment", checkToken, async (req, res) => {
             description: `ID usuario: ${user}`,
         });
 
-        for(const product of productsTemp){
+        for (const product of productsTemp) {
             const payload = {
                 user,
                 product: product._id,
@@ -42,46 +44,65 @@ app.post("/payment", checkToken, async (req, res) => {
                 postalCode,
                 nameCard,
                 country,
-                state
-            }
+                state,
+            };
 
             const payloadBook = {
                 user,
-                book: product._id,                
-            }
+                book: product._id,
+            };
 
-            const newOrderSale = new SaleOrder( payload );
-            const newUserBook = new UserBook( payloadBook );
+            const newOrderSale = new SaleOrder(payload);
+            const newUserBook = new UserBook(payloadBook);
             await newOrderSale.save();
             await newUserBook.save();
         }
 
         // delete books if you have in wishlist
-        
-        const wishlist = await Wishlist.find({ userId:  user });
-        const arrayProducts = products.map( book => book._id );
 
-        for(const item of wishlist){    
+        const wishlist = await Wishlist.find({ userId: user });
+        const arrayProducts = products.map((book) => book._id);
+
+        for (const item of wishlist) {
             const idBook = item.bookId.toString();
             const id = item._id.toString();
 
-            if( arrayProducts.includes( idBook )){
-                await Wishlist.findByIdAndUpdate(id, { status: false })                
+            if (arrayProducts.includes(idBook)) {
+                await Wishlist.findByIdAndUpdate(id, { status: false });
             }
         }
 
         res.json({
             status: true,
-            message: '¡El pago se realizo correctamente!',                    
+            message: "¡El pago se realizo correctamente!",
         });
-
     } catch (error) {
-    	console.log(error)
         res.status(500).json({
             status: false,
-            message: "Ha ocurrido un error al momento de realizar el pago, intentalo de nuevo",
+            message:
+                "Ha ocurrido un error al momento de realizar el pago, intentalo de nuevo",
         });
     }
+});
+
+app.post("/payment/book", async (req, res) => {
+    const booksId = req.body.books;
+
+    try {
+        const idObjects = booksId.map((id) => mongoose.Types.ObjectId(id));
+        const books = await Book.find({ _id: { $in: idObjects }}, '_id title price imgUrl')                                    
+        res.json({
+            status: true,
+            books,
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: 'Ha ocurrido un error *',
+            error
+        })
+    }
+
 });
 
 module.exports = app;
