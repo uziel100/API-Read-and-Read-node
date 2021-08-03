@@ -17,8 +17,7 @@ app.get("/test", (req, res) => {
 
 app.get("/book", (req, res) => {
   Book.find()
-    .sort( { _id: -1 } )
-    .limit( 20 )
+    .sort( { _id: -1 } )    
     .populate("category", "name niceName")
     .populate("subCategory", "name niceName")
     .populate("lang", "name")
