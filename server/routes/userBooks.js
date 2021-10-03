@@ -83,7 +83,12 @@ app.get("/user/:id/book", [checkToken, isUser], (req, res) => {
 
     if (limit) {
         UserBook.find({ user: id }, "_id createdAt favorite")
-            .populate("book", "_id imgUrl title fileName")
+            .populate({
+                path: "book",
+                populate: {
+                    path: "lang"
+                }
+            })
             .sort({ createdAt: -1 })
             .limit(limit)
             .exec((err, books) => {
@@ -101,7 +106,12 @@ app.get("/user/:id/book", [checkToken, isUser], (req, res) => {
             });
     } else {
         UserBook.find({ user: id }, "_id createdAt favorite")
-            .populate("book", "_id imgUrl title fileName createdAt")
+            .populate({
+                path: "book",
+                populate: {
+                    path: "lang"
+                }
+            })
             .sort({ createdAt: -1 })
             .exec((err, books) => {
                 if (err) {
@@ -124,7 +134,12 @@ app.get("/user-book/:id/recentlyViewed", [checkToken, isUser], (req, res) => {
     const limit = Number(req.query.limit) || 5;
 
     UserBook.find({ user: id }, "_id createdAt updatedAt favorite")
-        .populate("book", "_id imgUrl title fileName")
+        .populate({
+            path: "book",
+            populate: {
+                path: "lang"
+            }
+        })
         .sort({ updatedAt: -1 })
         .limit(limit)
         .exec((err, books) => {
@@ -181,7 +196,12 @@ app.get("/user-favorite/:idUser", [checkToken, isUser], async (req, res) => {
             { user: idUser, favorite: true },
             "_id createdAt favorite"
         )
-            .populate("book", "_id imgUrl title fileName")
+            .populate({
+                path: "book",
+                populate: {
+                    path: "lang"
+                }
+            })
             .sort({ updateAt: -1 });
 
         res.json({
@@ -199,7 +219,7 @@ app.get("/user-favorite/:idUser", [checkToken, isUser], async (req, res) => {
 
 app.get("/search/user-book/:id", async (req, res) => {
     const { id } = req.params;
-    const { query } = req.query;    
+    const { query } = req.query;
     let regex = new RegExp(query, "i");
 
     try {
@@ -213,14 +233,14 @@ app.get("/search/user-book/:id", async (req, res) => {
                 select: "_id imgUrl title fileName",
             })
             .exec();
-        
-        const filterBooks = books.filter( item => item.book )
+
+        const filterBooks = books.filter(item => item.book)
 
         res.json({
             status: true,
             books: filterBooks,
         });
-    } catch (error) {        
+    } catch (error) {
         res.status(500).json({
             status: true,
             message: "Ha ocurrido un error",
