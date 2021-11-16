@@ -12,7 +12,7 @@ app.use( require('./feedback') );
 app.use( require('./upload') );
 app.use( require('./languaje') );
 app.use( require('./publisher') );
-app.use( require('./sms') );
+// app.use( require('./sms') );
 app.use( require('./question') );
 app.use( require('./comment') );
 app.use( require('./wishlist') );
