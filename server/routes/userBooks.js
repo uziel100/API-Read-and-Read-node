@@ -4,6 +4,40 @@ const { checkToken, isUser } = require("../middlewares/autentication");
 const UserBook = require("../models/UserBook");
 
 const app = express();
+
+const populateBook = {
+    path: "book",
+    populate: [
+        {
+            path: "category",
+            select: "name"
+        },
+        {
+            path: "subCategory",
+            select: "name"
+        },
+        {
+            path: "lang",                        
+            select: "name"
+        },
+        {
+            path: "author",
+            populate: {
+                path: "author",
+                select: "name"
+            }
+        },
+        {
+            path: "publisher",
+            populate: {
+                path: "publisher",
+                select: "name"
+            }
+        }
+
+    ]
+}
+
 app.get("/user/:idUser/book/:idBook", (req, res) => {
     const { idBook, idUser } = req.params;
 
@@ -83,12 +117,7 @@ app.get("/user/:id/book", [checkToken, isUser], (req, res) => {
 
     if (limit) {
         UserBook.find({ user: id }, "_id createdAt favorite")
-            .populate({
-                path: "book",
-                populate: {
-                    path: "lang"
-                }
-            })
+            .populate(populateBook)
             .sort({ createdAt: -1 })
             .limit(limit)
             .exec((err, books) => {
@@ -105,13 +134,9 @@ app.get("/user/:id/book", [checkToken, isUser], (req, res) => {
                 });
             });
     } else {
+        console.log('date send')
         UserBook.find({ user: id }, "_id createdAt favorite")
-            .populate({
-                path: "book",
-                populate: {
-                    path: "lang"
-                }
-            })
+            .populate( populateBook )
             .sort({ createdAt: -1 })
             .exec((err, books) => {
                 if (err) {
@@ -134,12 +159,7 @@ app.get("/user-book/:id/recentlyViewed", [checkToken, isUser], (req, res) => {
     const limit = Number(req.query.limit) || 5;
 
     UserBook.find({ user: id }, "_id createdAt updatedAt favorite")
-        .populate({
-            path: "book",
-            populate: {
-                path: "lang"
-            }
-        })
+        .populate( populateBook )
         .sort({ updatedAt: -1 })
         .limit(limit)
         .exec((err, books) => {
@@ -196,12 +216,7 @@ app.get("/user-favorite/:idUser", [checkToken, isUser], async (req, res) => {
             { user: idUser, favorite: true },
             "_id createdAt favorite"
         )
-            .populate({
-                path: "book",
-                populate: {
-                    path: "lang"
-                }
-            })
+            .populate( populateBook )
             .sort({ updateAt: -1 });
 
         res.json({
