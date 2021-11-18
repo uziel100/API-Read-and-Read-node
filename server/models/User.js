@@ -73,7 +73,11 @@ let userSchema = new Schema({
       type: String
     },
     required: false,
-  }
+  },
+  pToken: {
+    type: String,
+    required: false,
+  },
 }, {
   timestamps: true,
   versionKey: false

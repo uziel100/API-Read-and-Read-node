@@ -6,6 +6,8 @@ const UserBook = require("../models/UserBook");
 const Book = require("../models/Book");
 const Wishlist = require("../models/Wishlist");
 const { checkToken } = require("../middlewares/autentication");
+const { Expo } = require('expo-server-sdk');
+const User = require("../models/User");
 
 const stripe = Stripe(
     "sk_test_51IHhWfCIDQWOdpTOmaemMvWBJIgDOrC2BNukykbC25Q46dhohuCjdcEj46owAA9GmMaItpnV4xxRaHubQLLBIray00ePr3SQrl"
@@ -58,6 +60,48 @@ app.post("/payment", checkToken, async (req, res) => {
             await newUserBook.save();
         }
 
+        // --------------
+        // expo push notification
+        // --------------
+        let pushToken = '';
+        await User.findById(user, (err, userDb) => {
+            if (err) {
+                console.log("error");
+            }
+
+            if (!userDb) {
+                console.log("Usuario no encontrado");
+            }
+
+            const { pToken } = userDb;
+
+            pushToken = pToken;
+        });
+
+        let expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
+
+        // Create the messages that you want to send to clients
+        let messages = [];
+
+        if (!Expo.isExpoPushToken(pushToken)) {
+            console.error(`Push token ${pushToken} is not a valid Expo push token`);
+        }
+
+        (async () => {
+            messages.push({
+                to: pushToken,
+                sound: 'default',
+                body: '¡Tu compra ha sido exitosa!',
+                data: { withSome: 'data' },
+            })
+            try {
+                await expo.sendPushNotificationsAsync(messages);
+            } catch (error) {
+                console.error(error);
+            }
+        })();
+
+
         // delete books if you have in wishlist
 
         const wishlist = await Wishlist.find({ userId: user });
@@ -90,7 +134,7 @@ app.post("/payment/book", async (req, res) => {
 
     try {
         const idObjects = booksId.map((id) => mongoose.Types.ObjectId(id));
-        const books = await Book.find({ _id: { $in: idObjects }}, '_id title price imgUrl')                                    
+        const books = await Book.find({ _id: { $in: idObjects } }, '_id title price imgUrl')
         res.json({
             status: true,
             books,

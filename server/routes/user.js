@@ -257,6 +257,32 @@ app.put("/user/question/answer", [checkToken, isUser], (req, res) => {
             }
         );
     });
+    
 });
+
+app.put(
+    "/user/tok/:id",
+    [
+        checkToken,
+    ],
+    async (req, res) => {
+        const id = req.params.id;
+        const { pToken } = req.body;
+        console.log(id)
+        console.log(pToken)
+        try {
+                await User.findByIdAndUpdate(id, { pToken });            
+                res.json({
+                    status: true,
+                    message: 'Datos actualizados :)'
+                })
+        } catch (error) {
+            res.status(500).json({
+                status: false,
+                message: 'Ha ocurrido un error'
+            })
+        }                            
+    }
+);
 
 module.exports = app;
